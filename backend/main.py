@@ -946,20 +946,6 @@ def send_email(msg):
 # =============================
 # BOOKING PAGE (SERVE HTML)
 # =============================
-@app.get("/booking", response_class=HTMLResponse)
-def booking_page():
-    with open("booking.html", "r", encoding="utf-8") as f:
-        return f.read()
-
-
-# =============================
-# CAREER PAGE (SERVE HTML)
-# =============================
-@app.get("/career", response_class=HTMLResponse)
-def career_page():
-    with open("career.html", "r", encoding="utf-8") as f:
-        return f.read()
-
 
 
 #1. Show all ACTIVE trips
