@@ -1,0 +1,568 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Help Center | ROUTRIX Transport</title>
+    
+    <!-- Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@600;800&family=Inter:wght@300;400;500;600&display=swap" rel="stylesheet">
+    
+    <!-- Favicon -->
+    <link rel="icon" type="image/png" sizes="32x32" href="assets/routrixlogo.png">
+    <link rel="icon" type="image/png" sizes="16x16" href="assets/routrixlogo.png">
+    <link rel="apple-touch-icon" sizes="180x180" href="assets/routrixlogo.png">
+
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: Arial, Helvetica, sans-serif;
+            scroll-behavior: smooth;
+        }
+
+        body {
+            background: #000;
+            color: white;
+            line-height: 1.6;
+            overflow-x: hidden;
+        }
+
+        .orbitron { font-family: 'Orbitron', sans-serif; }
+        .brand-red { color: #e10600; }
+
+        /* --- HEADER & NAVIGATION --- */
+        .navbar {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 14px 20px;
+            background: #000;
+            border-bottom: 1px solid #111;
+            position: sticky;
+            top: 0;
+            z-index: 1000;
+        }
+
+        .overlay {
+            position: fixed;
+            top: 0;
+            right: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.5);
+            z-index: 900;
+            display: none;
+        }
+
+        .overlay.active { display: block; }
+
+        .nav-right {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+        }
+
+        .logo {
+            font-family: 'Orbitron', sans-serif;
+            font-weight: 800;
+            font-size: 22px;
+            letter-spacing: 2px;
+            color: #fff;
+            cursor: pointer;
+        }
+
+        .nav-links {
+            display: flex;
+            gap: 25px;
+            position: relative;
+        }
+
+        .nav-links a {
+            display: block;
+            color: #aaa;
+            text-decoration: none;
+            font-size: 14px;
+            transition: 0.2s;
+        }
+
+        .nav-links a:hover { color: #fff; }
+
+        .nav-links a.active {
+            color: #e10600;
+        }
+
+        .menu-btn {
+            font-size: 22px;
+            cursor: pointer;
+            color: #fff;
+            display: none;
+        }
+
+        .close-btn { display: none; }
+
+        @media (max-width: 768px) {
+            .menu-btn { display: block; }
+            .nav-links {
+                position: fixed;
+                top: 0;
+                right: -100%;
+                width: 70%;
+                height: 100vh;
+                background: #000;
+                flex-direction: column;
+                padding: 60px 30px;
+                transition: 0.3s;
+                z-index: 1000;
+                gap: 0;
+            }
+            .nav-links.active { right: 0; }
+            .nav-links a {
+                padding: 15px 0;
+                border-bottom: 1px solid #111;
+                width: 100%;
+            }
+            .nav-links a.active {
+                border-left: 3px solid #e10600;
+                padding-left: 10px;
+            }
+            .close-btn {
+                display: block;
+                position: absolute;
+                top: 20px;
+                right: 20px;
+                font-size: 24px;
+                cursor: pointer;
+            }
+        }
+
+        /* --- HELP CONTENT STYLES --- */
+        .help-hero {
+            padding: 40px 20px;
+            text-align: center;
+            background: linear-gradient(to bottom, #050000, #000);
+        }
+
+        /* Mobile Slider Container */
+        .mobile-slider {
+            display: flex;
+            gap: 16px;
+            overflow-x: auto;
+            scroll-snap-type: x mandatory;
+            padding: 10px 0 20px;
+            scrollbar-width: none; 
+        }
+        .mobile-slider::-webkit-scrollbar { display: none; } 
+
+        .mobile-slider > * {
+            flex: 0 0 85%;
+            scroll-snap-align: center;
+        }
+
+        @media (min-width: 769px) {
+            .mobile-slider {
+                display: grid;
+                overflow: visible;
+                padding: 0;
+            }
+            .mobile-slider > * {
+                flex: none;
+            }
+        }
+
+        .support-container {
+            background: #0a0a0a;
+            border: 1px solid #111;
+            padding: 30px;
+            border-radius: 15px;
+            text-align: center;
+            height: 100%;
+        }
+
+        .contact-card {
+            background: #0a0a0a;
+            border: 1px solid #111;
+            padding: 20px;
+            border-radius: 12px;
+            text-align: center;
+            transition: 0.3s;
+            height: 100%;
+        }
+
+        .contact-card:hover {
+            border-color: #e10600;
+            transform: translateY(-5px);
+        }
+
+        .support-btn {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            padding: 12px 24px;
+            border-radius: 8px;
+            font-weight: bold;
+            text-transform: uppercase;
+            font-size: 13px;
+            transition: 0.3s;
+            text-decoration: none;
+            width: 100%;
+            max-width: 250px;
+        }
+
+        .btn-call { background: #e10600; color: #fff; }
+        .btn-call:hover { background: #fff; color: #000; }
+        
+        .btn-mail { border: 1px solid #333; color: #fff; }
+        .btn-mail:hover { border-color: #e10600; color: #e10600; }
+
+        /* --- GLOWING EFFECT --- */
+        @keyframes glowPulse {
+            0% { filter: drop-shadow(0 0 10px rgba(225, 6, 0, 0.4)); }
+            50% { filter: drop-shadow(0 0 35px rgba(225, 6, 0, 0.7)); }
+            100% { filter: drop-shadow(0 0 10px rgba(225, 6, 0, 0.4)); }
+        }
+
+        .glowing-guy {
+            animation: glowPulse 3s infinite ease-in-out;
+        }
+
+        /* --- MESSAGE BOX --- */
+        .msg-bubble {
+            background: #111;
+            border: 1px solid #e10600;
+            padding: 10px 16px;
+            border-radius: 15px 15px 15px 0px;
+            max-width: 260px;
+            position: relative;
+            margin: 0 auto 15px;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.5);
+            display: none; 
+        }
+
+        /* --- FAQ --- */
+        .faq-item {
+            background: #0a0a0a;
+            border: 1px solid #111;
+            margin-bottom: 8px;
+            border-radius: 8px;
+            overflow: hidden;
+        }
+
+        .faq-header {
+            padding: 15px 20px;
+            cursor: pointer;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            font-weight: 600;
+            font-size: 14px;
+            transition: 0.2s;
+        }
+
+        .faq-body {
+            max-height: 0;
+            overflow: hidden;
+            transition: 0.3s ease-out;
+            background: #050505;
+            color: #888;
+            font-size: 13px;
+        }
+
+        .faq-item.active .faq-body { max-height: 500px; padding: 0 20px 15px; }
+        .faq-item.active .faq-header { color: #e10600; background: #0c0c0c; }
+
+        /* --- FOOTER --- */
+        footer {
+            background: #000;
+            padding: 60px 40px;
+            border-top: 1px solid #111;
+        }
+
+        .footer-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 40px;
+            max-width: 1200px;
+            margin: auto;
+        }
+
+        footer h3 { margin-bottom: 20px; font-size: 16px; font-family: 'Orbitron', sans-serif; color: #fff; border-bottom: 1px solid #111; padding-bottom: 10px; }
+        footer p, footer li, footer a { color: #aaa; font-size: 13px; line-height: 1.6; text-decoration: none; }
+        footer ul { list-style: none; padding: 0; }
+        footer li { margin-bottom: 8px; }
+        footer a:hover { color: #e10600; }
+        .contact span { display: block; margin-bottom: 8px; color: #aaa; font-size: 13px; }
+
+    </style>
+</head>
+<body>
+
+    <!-- Overlay for mobile menu -->
+    <div id="overlay" class="overlay" onclick="closeMenu()"></div>
+
+    <nav class="navbar">
+        <div class="nav-right">
+            <div class="menu-btn" onclick="toggleMenu()">☰</div>
+            <div class="logo" onclick="goHome()">ROUTRIX</div>
+        </div>
+
+        <div class="nav-links" id="navLinks">
+            <div class="close-btn" onclick="toggleMenu()">✕</div>
+            <a href="index.html">Home</a>
+            <a href="tracking.html">Track Shipment</a>
+            <a href="booking.html">Booking</a>
+            <a href="services.html">Services</a>
+            <a href="career.html">Career</a>
+            <a href="driver.html">Driver Portal</a>
+            <a href="about.html">About Us</a>
+            <a href="help.html" class="active">Help</a>
+            <a href="admin.html">Admin</a>
+        </div>
+    </nav>
+
+    <header class="help-hero">
+        <div class="max-w-4xl mx-auto px-6">
+            <h1 class="orbitron text-3xl md:text-5xl font-black mb-2 uppercase">Support <span class="brand-red">Center</span></h1>
+            <p class="text-zinc-500 text-[10px] md:text-xs tracking-widest uppercase">We are here to assist you</p>
+        </div>
+    </header>
+
+    <main class="max-w-6xl mx-auto px-4 py-8">
+        
+        <!-- ROUTRIX CHARACTER (TOP POSITION) -->
+        <div class="flex flex-col items-center mb-8">
+            <!-- Message Bubble -->
+            <div id="supportMsg" class="msg-bubble">
+                <p id="msgText" class="text-[10px] font-semibold text-white">Hello! How can I help you today?</p>
+            </div>
+            <img src="midia/Routrix_guy.png" alt="Routrix Support" class="max-w-[180px] md:max-w-[280px] h-auto glowing-guy">
+        </div>
+
+        <!-- SLIDER SECTION 1: COMPLAINT & TRACKING -->
+        <div class="mb-10">
+            <h2 class="orbitron text-xs text-center text-zinc-500 mb-4 uppercase tracking-tighter md:hidden">Swipe for more help</h2>
+            <div class="mobile-slider md:grid-cols-2 md:max-w-4xl md:mx-auto md:gap-8">
+                <div class="support-container flex flex-col justify-between">
+                    <div>
+                        <h2 class="orbitron text-lg mb-2 brand-red uppercase">Complaint Support</h2>
+                        <p class="text-zinc-400 mb-6 text-[12px]">Facing issues with shipment? Our team is ready to resolve concerns.</p>
+                    </div>
+                    <a href="mailto:routrix.info@gmail.com?subject=Complaint%20Support" class="support-btn btn-mail mx-auto">Mail Us Directly</a>
+                </div>
+
+                <div class="support-container flex flex-col justify-between">
+                    <div>
+                        <h2 class="orbitron text-lg mb-2 brand-red uppercase">Tracking Help</h2>
+                        <p class="text-zinc-400 mb-6 text-[12px]">Need tracking details? Call our operations desk for status updates.</p>
+                    </div>
+                    <a href="tel:+918826282253" class="support-btn btn-call mx-auto">Call 88262 82253</a>
+                </div>
+            </div>
+        </div>
+
+        <!-- SLIDER SECTION 2: CONTACT CARDS -->
+        <div class="mb-12">
+            <h2 class="orbitron text-xs text-center text-zinc-500 mb-4 uppercase tracking-tighter md:hidden">Swipe for contacts</h2>
+            <div class="mobile-slider md:grid-cols-3 md:gap-6">
+                <div class="contact-card">
+                    <div class="text-xl mb-2">📞</div>
+                    <h3 class="orbitron text-[10px] mb-1">CALL US</h3>
+                    <p class="font-bold text-sm">+91 88262 82253</p>
+                </div>
+                <div class="contact-card">
+                    <div class="text-xl mb-2">✉</div>
+                    <h3 class="orbitron text-[10px] mb-1">INFO</h3>
+                    <p class="font-bold text-xs">routrix.info@gmail.com</p>
+                </div>
+                <div class="contact-card">
+                    <div class="text-xl mb-2">🏢</div>
+                    <h3 class="orbitron text-[10px] mb-1">OFFICIAL</h3>
+                    <p class="font-bold text-xs">routrix.in@gmail.com</p>
+                </div>
+            </div>
+        </div>
+
+        <!-- PREMIUM FAQ SECTION -->
+        <div class="max-w-3xl mx-auto mb-20 px-2">
+            <h2 class="orbitron text-2xl mb-8 text-center uppercase">Common <span class="brand-red">FAQ</span> 🚛 🔥</h2>
+            
+            <!-- Category: General -->
+            <h3 class="orbitron text-sm mb-4 text-zinc-500 border-b border-zinc-900 pb-2 uppercase tracking-widest">📦 General Questions</h3>
+            <div class="faq-item" onclick="toggleFaq(this)">
+                <div class="faq-header">What is ROUTRIX? <span>+</span></div>
+                <div class="faq-body">ROUTRIX is a modern logistics and goods transport platform designed to provide fast, secure, and technology-driven delivery solutions across India.</div>
+            </div>
+            <div class="faq-item" onclick="toggleFaq(this)">
+                <div class="faq-header">What services does ROUTRIX offer? <span>+</span></div>
+                <div class="faq-body">We provide: Goods transport, Driver network services, Fleet management, and Real-time shipment tracking.</div>
+            </div>
+            <div class="faq-item" onclick="toggleFaq(this)">
+                <div class="faq-header">Where is ROUTRIX available? <span>+</span></div>
+                <div class="faq-body">ROUTRIX operates across multiple cities in India and is expanding towards global logistics markets.</div>
+            </div>
+
+            <!-- Category: Shipping -->
+            <h3 class="orbitron text-sm mt-10 mb-4 text-zinc-500 border-b border-zinc-900 pb-2 uppercase tracking-widest">🚛 Shipping & Delivery</h3>
+            <div class="faq-item" onclick="toggleFaq(this)">
+                <div class="faq-header">How can I book a shipment? <span>+</span></div>
+                <div class="faq-body">You can book directly through our website using the booking section or contact our support team.</div>
+            </div>
+            <div class="faq-item" onclick="toggleFaq(this)">
+                <div class="faq-header">How long does delivery take? <span>+</span></div>
+                <div class="faq-body">Delivery time depends on distance and route, but we optimize every shipment for maximum speed and efficiency.</div>
+            </div>
+            <div class="faq-item" onclick="toggleFaq(this)">
+                <div class="faq-header">Can I track my shipment? <span>+</span></div>
+                <div class="faq-body">Yes, ROUTRIX provides real-time tracking so you always know where your goods are.</div>
+            </div>
+            <div class="faq-item" onclick="toggleFaq(this)">
+                <div class="faq-header">What types of goods can be transported? <span>+</span></div>
+                <div class="faq-body">We handle a wide range of goods including commercial cargo, industrial materials, and general freight.</div>
+            </div>
+
+            <!-- Category: Safety -->
+            <h3 class="orbitron text-sm mt-10 mb-4 text-zinc-500 border-b border-zinc-900 pb-2 uppercase tracking-widest">🔒 Safety & Trust</h3>
+            <div class="faq-item" onclick="toggleFaq(this)">
+                <div class="faq-header">Is my shipment safe with ROUTRIX? <span>+</span></div>
+                <div class="faq-body">Absolutely. We use secure handling protocols and verified drivers to ensure your goods are delivered safely.</div>
+            </div>
+            <div class="faq-item" onclick="toggleFaq(this)">
+                <div class="faq-header">Are your drivers verified? <span>+</span></div>
+                <div class="faq-body">Yes, all drivers are properly verified and trained to maintain high service standards.</div>
+            </div>
+
+            <!-- Category: Pricing -->
+            <h3 class="orbitron text-sm mt-10 mb-4 text-zinc-500 border-b border-zinc-900 pb-2 uppercase tracking-widest">💳 Pricing & Payments</h3>
+            <div class="faq-item" onclick="toggleFaq(this)">
+                <div class="faq-header">How is pricing calculated? <span>+</span></div>
+                <div class="faq-body">Pricing is based on distance, type of goods, and vehicle requirements.</div>
+            </div>
+            <div class="faq-item" onclick="toggleFaq(this)">
+                <div class="faq-header">Are there any hidden charges? <span>+</span></div>
+                <div class="faq-body">No. ROUTRIX follows transparent pricing with no hidden costs.</div>
+            </div>
+
+            <!-- Category: Driver -->
+            <h3 class="orbitron text-sm mt-10 mb-4 text-zinc-500 border-b border-zinc-900 pb-2 uppercase tracking-widest">👨‍✈️ Driver & Partners</h3>
+            <div class="faq-item" onclick="toggleFaq(this)">
+                <div class="faq-header">Can I join as a driver? <span>+</span></div>
+                <div class="faq-body">Yes, you can join our driver network through the “Join as Driver” section on our website.</div>
+            </div>
+            <div class="faq-item" onclick="toggleFaq(this)">
+                <div class="faq-header">What are the benefits for drivers? <span>+</span></div>
+                <div class="faq-body">Regular work opportunities, fair earnings, and a digital support system.</div>
+            </div>
+
+            <!-- Category: Tech -->
+            <h3 class="orbitron text-sm mt-10 mb-4 text-zinc-500 border-b border-zinc-900 pb-2 uppercase tracking-widest">🧠 Tech & Future</h3>
+            <div class="faq-item" onclick="toggleFaq(this)">
+                <div class="faq-header">Does ROUTRIX use AI? <span>+</span></div>
+                <div class="faq-body">Yes, ROUTRIX is building AI-powered logistics systems for route optimization and efficiency.</div>
+            </div>
+            <div class="faq-item" onclick="toggleFaq(this)">
+                <div class="faq-header">What is ROUTRIX’s future vision? <span>+</span></div>
+                <div class="faq-body">To build a global, AI-driven logistics ecosystem connecting businesses across countries.</div>
+            </div>
+        </div>
+    </main>
+
+    <footer>
+        <div class="footer-grid">
+            <div>
+                <h3>ROUTRIX</h3>
+                <p><strong>Goods Transport & Logistics Services</strong></p>
+                <p>
+                    Registered Office:<br>
+                    Flat No. 127, 2nd Floor, Pkt-A2,<br>
+                    Sector-17, Rohini,<br>
+                    New Delhi – 110089
+                </p>
+                <br>
+                <p>GST: 07CXXXXXXXXJ1Z1</p>
+                <p>MSME: UDYAM-DL-04-006XXXX</p>
+            </div>
+
+            <div>
+                <h3>QUICK LINKS</h3>
+                <ul>
+                    <li><a href="index.html">Home</a></li>
+                    <li><a href="tracking.html">Track Shipment</a></li>
+                    <li><a href="booking.html">Online Booking</a></li>
+                    <li><a href="services.html">Our Services</a></li>
+                    <li><a href="career.html">Carrier Careers</a></li>
+                    <li><a href="driver.html">Driver Portal</a></li>
+                    <li><a href="about.html">About Company</a></li>
+                    <li><a href="help.html">Help & Support</a></li>
+                </ul>
+            </div>
+
+            <div>
+                <h3>CONTACT</h3>
+                <div class="contact">
+                    <span>+91 88262 82253</span>
+                    <span>routrix.info@gmail.com</span>
+                    <span>routrix.in@gmail.com</span>
+                </div>
+            </div>
+
+            <div>
+                <h3>CORE SERVICES</h3>
+                <ul>
+                    <li>Pan India Transportation</li>
+                    <li>Packers & Movers</li>
+                    <li>Heavy Machinery Transport</li>
+                    <li>Packing Solutions</li>
+                    <li>Construction Material</li>
+                    <li>Loading & Unloading</li>
+                    <li>Office Shifting</li>
+                    <li>Long-Term Contracts</li>
+                </ul>
+            </div>
+        </div>
+    </footer>
+
+    <script>
+        function toggleMenu() {
+            document.getElementById("navLinks").classList.toggle("active");
+            document.getElementById("overlay").classList.toggle("active");
+        }
+
+        function closeMenu() {
+            document.getElementById("navLinks").classList.remove("active");
+            document.getElementById("overlay").classList.remove("active");
+        }
+
+        function goHome() {
+            window.location.href = "index.html";
+        }
+
+        function toggleFaq(element) {
+            const isActive = element.classList.contains('active');
+            // Close all others
+            document.querySelectorAll('.faq-item').forEach(item => item.classList.remove('active'));
+            // Open this one if it wasn't already open
+            if (!isActive) {
+                element.classList.add('active');
+            }
+        }
+
+        function pushSupportMessage(text) {
+            const bubble = document.getElementById('supportMsg');
+            const txtArea = document.getElementById('msgText');
+            if(text) {
+                txtArea.innerText = text;
+                bubble.style.display = 'block';
+            } else {
+                bubble.style.display = 'none';
+            }
+        }
+
+        // Demo push
+        setTimeout(() => {
+            pushSupportMessage("Hello, I’m ROUTRIX AI.I’m here to help you track shipments, book deliveries, and guide you through our logistics network.");
+        }, 1500);
+    </script>
+<script src="static/js/api-config.js"></script></body>
+</html>

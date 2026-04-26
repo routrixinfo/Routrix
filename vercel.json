@@ -1,0 +1,15 @@
+{
+  "buildCommand": "echo 'Static frontend'",
+  "outputDirectory": "frontend",
+  "installCommand": "echo 'No build needed'",
+  "routes": [
+    {
+      "src": "/(.*)",
+      "dest": "frontend/$1"
+    }
+  ],
+  "env": {
+    "REACT_APP_API_URL": "https://routrix-backend.onrender.com",
+    "REACT_APP_BACKEND_URL": "https://routrix-backend.onrender.com"
+  }
+}

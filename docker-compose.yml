@@ -1,0 +1,55 @@
+version: '3.9'
+
+services:
+  # ===== ROUTRIX BACKEND =====
+  backend:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: routrix-backend
+    ports:
+      - "8000:8000"
+    environment:
+      - ENVIRONMENT=production
+      - DATABASE_URL=sqlite:///./database/routrix.db
+    volumes:
+      - ./database:/app/database
+      - ./uploads:/app/uploads
+      - ./banners:/app/banners
+      - ./pod_images:/app/pod_images
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8000/api"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 40s
+    networks:
+      - routrix-network
+
+  # ===== NGINX REVERSE PROXY =====
+  nginx:
+    image: nginx:latest
+    container_name: routrix-nginx
+    ports:
+      - "80:80"
+      - "443:443"
+    volumes:
+      - ./frontend:/usr/share/nginx/html
+      - ./nginx.conf:/etc/nginx/nginx.conf:ro
+      - ./ssl:/etc/nginx/ssl:ro
+    depends_on:
+      - backend
+    restart: unless-stopped
+    networks:
+      - routrix-network
+
+networks:
+  routrix-network:
+    driver: bridge
+
+volumes:
+  database:
+  uploads:
+  banners:
+  pod_images:

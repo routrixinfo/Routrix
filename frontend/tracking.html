@@ -1,0 +1,577 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>ROUTRIX – Live Tracking System</title>
+
+  <!-- 🔥 ROUTRIX FAVICON (Desktop + Mobile) -->
+<link rel="icon" type="image/png" sizes="32x32" href="assets/routrixlogo.png">
+<link rel="icon" type="image/png" sizes="16x16" href="assets/routrixlogo.png">
+<link rel="apple-touch-icon" sizes="180x180" href="assets/routrixlogo.png">
+
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <!-- Leaflet CSS -->
+  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+  <!-- Fonts -->
+  <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700&family=Plus+Jakarta+Sans:wght@300;400;600&display=swap" rel="stylesheet">
+
+  <style>
+    :root {
+      --bg: #050505;
+      --panel: rgba(15, 15, 15, 0.9);
+      --accent: #e10600;
+      --success: #00e676;
+      --text: #ffffff;
+      --muted: #a0a0a0;
+      --border: rgba(255, 255, 255, 0.08);
+    }
+
+    body, html { margin: 0; padding: 0; width: 100%; height: 100%; font-family: 'Plus Jakarta Sans', sans-serif; background: var(--bg); color: var(--text); overflow-x: hidden; }
+
+ /* ================= NAVIGATION ================= */
+nav {
+  position: fixed;   /* 🔥 KEY FIX */
+  top: 0;
+  left: 0;
+  right: 0;
+  z-index: 9999;     /* ALWAYS ON TOP */
+  background: linear-gradient(to bottom, rgba(0,0,0,0.9), transparent);
+  padding: 0 40px;
+  height: 80px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+/* LOGO (FULL WHITE) */
+.logo {
+  font-family: 'Orbitron', sans-serif;
+  font-weight: 700;
+  font-size: 26px;
+  letter-spacing: 2px;
+  color: #fff;
+  position: relative;
+  z-index: 10000;
+
+  text-decoration: none;   /* 🔥 ADD THIS */
+  display: inline-block;   /* 🔥 ADD THIS */
+}
+
+.logo::after {
+  display: none !important; /* 🔥 removes underline animation */
+}
+/* FIX: prevent any default link styles */
+
+.logo:visited,
+.logo:hover,
+.logo:active {
+  text-decoration: none;
+  color: #fff;
+}
+/* MENU HEADER (INDEX STYLE) */
+.menu-top{
+  display: none;
+}
+
+@media(max-width:768px){
+
+  .menu-top{
+    display:flex;
+    justify-content:space-between;
+    align-items:center;
+    width:100%;
+    margin-bottom:20px;
+  }
+
+  .menu-logo{
+    font-family:'Orbitron', sans-serif;
+    font-size:20px;
+    letter-spacing:2px;
+    color:#fff;
+  }
+
+  .menu-close{
+    font-size:22px;
+    cursor:pointer;
+    color:#fff;
+  }
+
+}
+
+/* NAV LINKS */
+.nav-links{
+  display:flex;
+  gap:30px;
+  z-index:2500;
+}
+
+/* LINKS */
+/* DESKTOP LINKS */
+.nav-links a{
+  display:inline-block;
+  padding:0;
+  border:none;
+  color:var(--muted);
+  text-decoration:none;
+  font-size:13px;
+  font-weight:600;
+  transition:all 0.2s ease;
+}
+@media(max-width:768px){
+  .nav-links a{
+    display:block;
+    padding:15px 0 15px 12px;
+    border-bottom:1px solid #111;
+    width:100%;
+    font-size:15px;
+  }
+}
+
+/* HOVER */
+.nav-links a:hover{
+  color:#fff;
+  transform:scale(1.05);
+}
+
+/* CLICK POP */
+.nav-links a:active{
+  transform:scale(0.95);
+}
+
+/* ACTIVE */
+.nav-links a.active{
+  color:var(--accent);
+}
+
+/* MOBILE RED LINE */
+@media(max-width:768px){
+  .nav-links a.active{
+    border-left:3px solid var(--accent);
+    padding-left:12px;
+  }
+}
+
+/* HAMBURGER */
+.menu-btn{
+  display:none;
+  font-size:26px;
+  cursor:pointer;
+  color:#fff;
+  z-index:4000;
+}
+
+/* ❌ REMOVE CLOSE BUTTON COMPLETELY */
+.close-btn{
+  display:none !important;
+}
+
+/* MOBILE */
+@media(max-width:768px){
+
+  .menu-btn{
+    display:block;
+  }
+
+  .nav-links{
+    position:fixed;
+    top:0;
+    right:-100%;
+    width:50%;
+    height:100vh;
+    background:#000;
+    flex-direction:column;
+    align-items:flex-start;
+    padding:80px 20px 20px; /* 🔥 FIXED */
+    gap:20px;
+    transition:0.4s ease;
+    z-index:2000;
+  }
+
+  .nav-links.active{
+    right:0;
+  }
+}
+
+/* MENU HEADER (LOGO INSIDE MENU) */
+.menu-header{
+  margin-bottom:20px;
+}
+
+.menu-logo{
+  font-family:'Orbitron', sans-serif;
+  font-size:20px;
+  letter-spacing:2px;
+  color:#fff;
+}
+
+/* LOGO FIX */
+.logo{
+  position:relative;
+  z-index:5000;
+}
+    /* Map Area */
+#map {
+  width: 100%;
+  height: 100dvh; /* 🔥 FINAL FIX */
+  background: #080808;
+  z-index: 1;
+}
+    /* Search Interface */
+.hero-overlay {
+  position: absolute;
+  inset: 0;
+  z-index: 1500;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 20px; /* FIX: prevents edge cut */
+  background: radial-gradient(circle at center, #111 0%, #000 100%);
+  transition: opacity 0.6s ease;
+}
+
+.search-box {
+  width: 100%;
+  max-width: 480px;
+  background: var(--panel);
+  padding: 30px 20px; /* REDUCED for mobile */
+  border-radius: 25px;
+  border: 1px solid var(--border);
+  text-align: center;
+  box-shadow: 0 40px 80px rgba(0,0,0,0.7);
+  backdrop-filter: blur(20px);
+}
+
+.search-box h2 {
+  font-family: 'Orbitron', sans-serif;
+  font-size: 20px;
+  margin-bottom: 10px;
+}
+
+.search-box p {
+  color: var(--muted);
+  font-size: 13px;
+  margin-bottom: 25px;
+}
+
+/* ROW FIX */
+.search-row {
+  display: flex;
+  gap: 10px;
+  width: 100%;
+}
+
+/* INPUT FIX */
+input {
+  flex: 1;
+  min-width: 0; /* IMPORTANT: prevents overflow */
+  background: #000;
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  padding: 14px;
+  color: #fff;
+  font-family: 'Orbitron';
+  font-size: 14px;
+  outline: none;
+}
+
+/* BUTTON FIX */
+.track-btn {
+  background: var(--accent);
+  color: #fff;
+  border: none;
+  border-radius: 12px;
+  padding: 0 18px;
+  font-family: 'Orbitron';
+  font-weight: 700;
+  cursor: pointer;
+  white-space: nowrap;
+  transition: 0.3s;
+}
+
+.track-btn:hover {
+  background: #ff0800;
+  transform: translateY(-2px);
+}
+
+/* ================= MOBILE ================= */
+@media (max-width: 768px) {
+
+  .search-box {
+    padding: 20px 15px;
+    border-radius: 20px;
+  }
+
+  .search-box h2 {
+    font-size: 18px;
+  }
+
+  .search-box p {
+    font-size: 12px;
+  }
+
+  /* STACK FIX */
+  .search-row {
+    flex-direction: column;
+  }
+
+  input {
+    width: 100%;
+    font-size: 14px;
+  }
+
+  .track-btn {
+    width: 100%;
+    padding: 12px;
+  }
+}
+    /* Bottom Info Card */
+    .status-card {
+      position: absolute; bottom: 30px; left: 50%; transform: translateX(-50%);
+      width: 90%; max-width: 450px; background: var(--panel); border: 1px solid var(--border);
+      border-radius: 30px; padding: 25px; z-index: 1001; display: none;
+      box-shadow: 0 -20px 50px rgba(0,0,0,0.5); backdrop-filter: blur(30px);
+    }
+    .progress-bar-bg { height: 6px; background: rgba(255,255,255,0.05); border-radius: 10px; margin: 20px 0; overflow-x: hidden; }
+    .progress-bar-fill { height: 100%; background: linear-gradient(90deg, var(--accent), var(--success)); width: 0%; transition: width 1s ease; }
+
+    /* Custom Marker Styles */
+    .dynamic-marker { display: flex; flex-direction: column; align-items: center; justify-content: center; pointer-events: none; }
+    .marker-label {
+      background: var(--accent); color: white; font-family: 'Orbitron'; font-size: 11px; font-weight: 700;
+      padding: 2px 8px; border-radius: 4px; margin-top: 5px; white-space: nowrap; box-shadow: 0 4px 10px rgba(0,0,0,0.5);
+    }
+    .office-label { background: #333; }
+    .radar-pulse {
+      position: absolute; border-radius: 50%; border: 2px solid var(--accent);
+      animation: radar 2s infinite ease-out; z-index: -1;
+    }
+    @keyframes radar { 0% { transform: scale(0.5); opacity: 1; } 100% { transform: scale(2.5); opacity: 0; } }
+
+    .truck-img { transition: transform 0.5s ease; filter: drop-shadow(0 0 15px var(--accent)); }
+  </style>
+</head>
+<body>
+
+<nav>
+
+  <!-- 🔥 LEFT SIDE -->
+  <div style="display:flex; align-items:center; gap:15px;">
+    <div class="menu-btn" onclick="toggleMenu()">☰</div>
+    <a href="index.html" class="logo">ROUTRIX</a>
+  </div>
+
+  <!-- RIGHT SIDE -->
+  <div class="nav-links" id="navLinks">
+
+ 
+
+  <a href="index.html">Home</a>
+  <a href="tracking.html" class="active">Track Shipment</a>
+  <a href="booking.html">Booking</a>
+  <a href="services.html">Services</a>
+  <a href="about.html">About Us</a>
+  <a href="help.html">Help</a>
+  <a href="legal.html">Legal</a>
+
+</div>
+</nav>
+
+<div id="map"></div>
+
+<div class="hero-overlay" id="heroOverlay">
+  <div class="search-box">
+    <h2>Track Your Shipment</h2>
+    <p>Enter your Tracking ID to access real-time vehicle location, route status, and live updates powered by ROUTRIX network.</p>
+    <div class="search-row">
+      <input id="lrInput" placeholder="RTX-XXXX" maxlength="16">
+      <button class="track-btn" id="trackBtn">TRACK</button>
+    </div>
+  </div>
+</div>
+
+<div class="status-card" id="statusCard">
+  <div style="display:flex; justify-content:space-between; align-items:flex-end">
+    <div>
+      <span style="font-size:11px; color:var(--muted); letter-spacing:1px">EST. ARRIVAL</span>
+      <div id="etaVal" style="font-family:'Orbitron'; font-size:32px; color:var(--success)">-- MIN</div>
+    </div>
+    <div style="text-align:right">
+      <span style="font-size:11px; color:var(--muted); letter-spacing:1px">DISTANCE</span>
+      <div id="distVal" style="font-family:'Orbitron'; font-size:20px; color:var(--accent)">-- KM</div>
+    </div>
+  </div>
+
+  <div class="progress-bar-bg">
+    <div id="progressBar" class="progress-bar-fill"></div>
+  </div>
+
+  <div style="display:flex; align-items:center; gap:15px; background:rgba(255,255,255,0.03); padding:15px; border-radius:20px; border:1px solid var(--border)">
+    <div style="font-size:28px">🚚</div>
+    <div>
+      <div id="driverName" style="font-family:'Orbitron'; font-size:14px; color:#fff">Identifying...</div>
+      <div id="vehicleNo" style="font-size:12px; color:var(--muted)">Vehicle Tracking Enabled</div>
+    </div>
+  </div>
+</div>
+
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+<script>
+const OFFICE_LOC = { lat: 28.738972, lng: 77.117343 };
+const BACKEND = "http://127.0.0.1:8000";
+let map, markerTruck, markerOffice, markerUser;
+let currentData = null;
+let userLoc = OFFICE_LOC;
+
+// UI Initialization
+document.getElementById('trackBtn').onclick = startTracking;
+
+async function startTracking() {
+  const lr = document.getElementById('lrInput').value.trim();
+  if(!lr) return;
+
+  try {
+    const res = await fetch(`${BACKEND}/track/${lr}`);
+    const data = await res.json();
+    if(!data.lat) throw new Error();
+    
+    currentData = data;
+    
+    // Request User Location
+    if(navigator.geolocation) {
+      navigator.geolocation.getCurrentPosition(p => {
+        userLoc = { lat: p.coords.latitude, lng: p.coords.longitude };
+        initTrackingUI();
+      }, () => initTrackingUI());
+    } else {
+      initTrackingUI();
+    }
+  } catch(e) {
+    alert("Tracking ID not found in current mission log.");
+  }
+}
+
+function initTrackingUI() {
+  document.getElementById('heroOverlay').style.opacity = '0';
+  setTimeout(() => {
+    document.getElementById('heroOverlay').style.display = 'none';
+    document.getElementById('statusCard').style.display = 'block';
+    
+    setupMap();
+    updateLoop();
+    setInterval(updateLoop, 3000);
+  }, 6000); // Dramatic pause for "Satellite Sync"
+}
+
+function setupMap() {
+  map = L.map('map', { zoomControl: false, attributionControl: false }).setView([currentData.lat, currentData.lng], 15);
+  L.tileLayer('https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png').addTo(map);
+
+  // Re-scale everything on zoom
+  map.on('zoomend', renderMarkers);
+}
+
+function renderMarkers() {
+  if (!currentData) return;
+  
+  const zoom = map.getZoom();
+  
+  // LOGIC: Non-linear scaling. 
+  // At zoom 18, truck is ~180px. At zoom 5, truck is ~60px (still visible).
+  const truckSize = Math.max(50, 180 * Math.pow(0.85, 18 - zoom));
+  const poiSize = Math.max(30, 80 * Math.pow(0.85, 18 - zoom));
+
+  // 1. TRUCK MARKER
+  const truckIcon = L.divIcon({
+    className: 'dynamic-marker',
+    iconSize: [truckSize, truckSize],
+    iconAnchor: [truckSize/2, truckSize/2],
+    html: `
+      <div class="radar-pulse" style="width:${truckSize}px; height:${truckSize}px"></div>
+      <img src="assets/Truck_topview.png" class="truck-img" style="width:${truckSize}px; transform:rotate(${currentData.bearing || 0}deg)">
+<div class="marker-label" style="font-size:${Math.max(8, truckSize/8)}px">
+  ${document.getElementById('lrInput').value || 'RTX-XXXX'}
+</div>    `
+  });
+
+  if(!markerTruck) markerTruck = L.marker([currentData.lat, currentData.lng], {icon: truckIcon}).addTo(map);
+  else {
+    markerTruck.setLatLng([currentData.lat, currentData.lng]);
+    markerTruck.setIcon(truckIcon);
+  }
+
+  // 2. OFFICE MARKER
+  const officeIcon = L.divIcon({
+    className: 'dynamic-marker',
+    iconSize: [poiSize, poiSize],
+    html: `
+      <div style="font-size:${poiSize}px">🏢</div>
+      <div class="marker-label office-label" style="font-size:${Math.max(8, poiSize/6)}px">ROUTRIX HQ</div>
+    `
+  });
+  if(!markerOffice) markerOffice = L.marker([OFFICE_LOC.lat, OFFICE_LOC.lng], {icon: officeIcon}).addTo(map);
+  else markerOffice.setIcon(officeIcon);
+
+  // 3. USER/CLIENT MARKER
+  const userIcon = L.divIcon({
+    className: 'dynamic-marker',
+    iconSize: [poiSize, poiSize],
+    html: `<div style="font-size:${poiSize}px">📍</div>`
+  });
+  if(!markerUser) markerUser = L.marker([userLoc.lat, userLoc.lng], {icon: userIcon}).addTo(map);
+  else markerUser.setIcon(userIcon);
+}
+
+async function updateLoop() {
+  const lr = document.getElementById('lrInput').value;
+  try {
+    const res = await fetch(`${BACKEND}/track/${lr}`);
+    const data = await res.json();
+    
+    // Calculate rotation/bearing
+    if(currentData) {
+      data.bearing = getBearing(currentData.lat, currentData.lng, data.lat, data.lng);
+    }
+    
+    currentData = data;
+    renderMarkers();
+    updateStats();
+    
+    map.panTo([data.lat, data.lng], { animate: true, duration: 1 });
+  } catch(e) {}
+}
+
+function updateStats() {
+  const d = calcDist(currentData.lat, currentData.lng, userLoc.lat, userLoc.lng);
+  const eta = Math.max(1, Math.round((d / 35) * 60));
+  
+  document.getElementById('etaVal').innerText = eta + ' MIN';
+  document.getElementById('distVal').innerText = d.toFixed(1) + ' KM';
+  document.getElementById('driverName').innerText = currentData.driver_name || 'Fleet Pilot';
+  document.getElementById('vehicleNo').innerText = 'Vehicle ID: ' + (currentData.vehicle_no || 'RTX-900');
+  document.getElementById('progressBar').style.width = Math.min(100, (1 - (d/50)) * 100) + '%';
+}
+
+// Helpers
+function getBearing(lat1, lng1, lat2, lng2) {
+  const dLng = (lng2 - lng1) * Math.PI / 180;
+  const y = Math.sin(dLng) * Math.cos(lat2 * Math.PI / 180);
+  const x = Math.cos(lat1 * Math.PI / 180) * Math.sin(lat2 * Math.PI / 180) - Math.sin(lat1 * Math.PI / 180) * Math.cos(lat2 * Math.PI / 180) * Math.cos(dLng);
+  return (Math.atan2(y, x) * 180 / Math.PI + 360) % 360;
+}
+
+function calcDist(lat1, lng1, lat2, lng2) {
+  const R = 6371;
+  const dLat = (lat2 - lat1) * Math.PI / 180;
+  const dLon = (lng2 - lng1) * Math.PI / 180;
+  const a = Math.sin(dLat/2)**2 + Math.cos(lat1*Math.PI/180) * Math.cos(lat2*Math.PI/180) * Math.sin(dLon/2)**2;
+  return R * 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a));
+}
+</script>
+
+<script>
+function toggleMenu() {
+  document.getElementById("navLinks").classList.toggle("active");
+}
+</script>
+<script src="static/js/api-config.js"></script></body>
+</html>

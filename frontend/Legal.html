@@ -1,0 +1,565 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Legal Center | ROUTRIX Transport</title>
+    <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@600;800&family=Inter:wght@300;400;500;600&display=swap" rel="stylesheet">
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        :root {
+            --brand-red: #e10600;
+            --brand-black: #000000;
+            --brand-dark: #0a0a0a;
+            --brand-card: #141414;
+            --text-gray: #a1a1aa;
+        }
+
+        body {
+            margin: 0;
+            padding: 0;
+            background: var(--brand-black);
+            color: #ffffff;
+            font-family: 'Inter', sans-serif;
+            scroll-behavior: smooth;
+        }
+
+        /* HEADER & LOGO STYLE */
+        .navbar {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 14px 20px;
+            background: #000;
+            border-bottom: 1px solid #1a1a1a;
+            position: sticky;
+            top: 0;
+            z-index: 1000;
+        }
+
+        .logo {
+            font-family: 'Orbitron', sans-serif;
+            font-weight: 800;
+            font-size: 22px;
+            letter-spacing: 2px;
+            color: #fff;
+            cursor: pointer;
+        }
+
+        .nav-links {
+            display: flex;
+            gap: 25px;
+        }
+
+        .nav-links a {
+            color: #aaa;
+            text-decoration: none;
+            font-size: 14px;
+            transition: 0.2s;
+        }
+
+        .nav-links a:hover { color: #fff; }
+        .nav-links a.active { color: var(--brand-red); }
+
+        /* SIDEBAR STYLING */
+        .legal-sidebar-link {
+            transition: all 0.3s ease;
+            border-left: 2px solid transparent;
+            padding: 0.5rem 0 0.5rem 0;
+            display: block;
+        }
+
+        .legal-sidebar-link.active {
+            color: var(--brand-red);
+            border-left: 2px solid var(--brand-red);
+            padding-left: 1rem;
+            background: linear-gradient(90deg, rgba(225, 6, 0, 0.1) 0%, transparent 100%);
+            font-weight: 600;
+        }
+
+        .privacy-link.active {
+            color: #10b981;
+            border-left-color: #10b981;
+            background: linear-gradient(90deg, rgba(16, 185, 129, 0.1) 0%, transparent 100%);
+        }
+
+        .employee-link.active {
+            color: #3b82f6;
+            border-left-color: #3b82f6;
+            background: linear-gradient(90deg, rgba(59, 130, 246, 0.1) 0%, transparent 100%);
+        }
+
+        /* CONTENT STYLING */
+        .glass-card {
+            background: var(--brand-card);
+            border: 1px solid #222;
+        }
+
+        section {
+            scroll-margin-top: 100px;
+            padding-bottom: 2rem;
+            border-bottom: 1px solid #1a1a1a;
+            margin-bottom: 3.5rem;
+        }
+
+        .orbitron { font-family: 'Orbitron', sans-serif; }
+
+        .security-alert {
+            background: linear-gradient(135deg, #1a0505 0%, #000000 100%);
+            border: 1px solid #450a0a;
+        }
+
+        .privacy-highlight {
+            background: linear-gradient(135deg, #051a05 0%, #000000 100%);
+            border: 1px solid #064e3b;
+        }
+
+        .employee-policy-bg {
+            background: linear-gradient(135deg, #050b1a 0%, #000000 100%);
+            border: 1px solid #1e3a8a;
+        }
+
+        .description-text {
+            line-height: 1.8;
+            color: #a1a1aa;
+            margin-bottom: 1.5rem;
+        }
+
+        /* MOBILE OVERLAY */
+        .overlay {
+            position: fixed;
+            top: 0;
+            right: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.8);
+            z-index: 900;
+            display: none;
+        }
+        .overlay.active { display: block; }
+
+        @media(max-width: 768px) {
+            .nav-links {
+                position: fixed;
+                top: 0;
+                right: -100%;
+                width: 70%;
+                height: 100vh;
+                background: #000;
+                flex-direction: column;
+                padding: 60px 30px;
+                transition: 0.3s;
+                z-index: 1000;
+            }
+            .nav-links.active { right: 0; }
+            .menu-btn { display: block; font-size: 22px; cursor: pointer; color: #fff; }
+        }
+
+        .menu-btn { display: none; }
+        @media(max-width: 768px) { .menu-btn { display: block; } }
+
+        footer {
+            background: #000;
+            padding: 60px 40px;
+            border-top: 1px solid #111;
+        }
+    </style>
+</head>
+<body>
+
+    <div id="overlay" class="overlay" onclick="toggleMenu()"></div>
+
+    <nav class="navbar">
+        <div class="flex items-center gap-4">
+            <div class="menu-btn" onclick="toggleMenu()">☰</div>
+            <div class="logo" onclick="window.location.href='index.html'">ROUTRIX</div>
+        </div>
+
+        <div class="nav-links" id="navLinks">
+            <a href="index.html">Home</a>
+            <a href="tracking.html">Track Shipment</a>
+            <a href="booking.html">Booking</a>
+            <a href="services.html">Services</a>
+            <a href="about.html">About Us</a>
+            <a href="Legal.html" class="active">Legal</a>
+            <a href="404.html">Contact</a>
+        </div>
+    </nav>
+
+    <main class="max-w-7xl mx-auto px-6 py-12 lg:py-20">
+        <div class="flex flex-col lg:flex-row gap-12">
+            
+            <!-- Sidebar Navigation -->
+            <aside class="lg:w-1/4 hidden lg:block">
+                <div class="sticky top-28 h-[calc(100vh-120px)] overflow-y-auto pr-4 scrollbar-hide">
+                    <h3 class="orbitron text-xs font-bold text-red-600 uppercase tracking-widest mb-6">Terms & Conditions</h3>
+                    <nav class="flex flex-col text-sm text-zinc-500 mb-10">
+                        <a href="#nature" class="legal-sidebar-link active">01. Nature of Services</a>
+                        <a href="#eligibility" class="legal-sidebar-link">02. User Eligibility</a>
+                        <a href="#dispatch" class="legal-sidebar-link">03. Booking & Dispatch</a>
+                        <a href="#cancellation" class="legal-sidebar-link">04. Cancellation Policy</a>
+                        <a href="#payments" class="legal-sidebar-link">05. Payment Security</a>
+                        <a href="#verification" class="legal-sidebar-link">06. Verification Policy</a>
+                        <a href="#billing" class="legal-sidebar-link">07. Billing & GST</a>
+                    </nav>
+
+                    <h3 class="orbitron text-xs font-bold text-green-600 uppercase tracking-widest mb-6">Privacy & Platform</h3>
+                    <nav class="flex flex-col text-sm text-zinc-500 mb-10">
+                        <a href="#privacy-policy" class="legal-sidebar-link privacy-link">Privacy & Usage</a>
+                        <a href="#cookies" class="legal-sidebar-link privacy-link">Cookies & Tracking</a>
+                        <a href="#fraud" class="legal-sidebar-link privacy-link">Fraud Prevention</a>
+                        <a href="#responsibility" class="legal-sidebar-link privacy-link">User Responsibility</a>
+                        <a href="#compliance" class="legal-sidebar-link privacy-link">Global Compliance</a>
+                    </nav>
+
+                    <h3 class="orbitron text-xs font-bold text-blue-500 uppercase tracking-widest mb-6">Internal Policies</h3>
+                    <nav class="flex flex-col text-sm text-zinc-500">
+                        <a href="#employee-conduct" class="legal-sidebar-link employee-link">Code of Conduct</a>
+                        <a href="#emp-security" class="legal-sidebar-link employee-link">Security & Data</a>
+                        <a href="#emp-financial" class="legal-sidebar-link employee-link">Financial Discipline</a>
+                        <a href="#emp-safety" class="legal-sidebar-link employee-link">Safety & Emergency</a>
+                    </nav>
+                </div>
+            </aside>
+
+            <!-- Main Content Area -->
+            <article class="lg:w-3/4">
+                <!-- TERMS AND CONDITIONS SECTION -->
+                <header class="mb-16">
+                    <div class="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-red-600/10 border border-red-600/20 text-red-500 text-[10px] font-bold uppercase tracking-widest mb-6">
+                        Legal Segment 01
+                    </div>
+                    <h1 class="orbitron text-4xl md:text-6xl font-extrabold text-white mb-6 uppercase tracking-tight">Terms & Conditions</h1>
+                </header>
+
+                <div class="prose prose-invert max-w-none space-y-12">
+                    <section id="nature">
+                        <h2 class="orbitron text-xl text-white mb-6 flex items-baseline gap-4">
+                            <span class="text-red-600 text-2xl">01</span> Nature of Services
+                        </h2>
+                        <p class="description-text">
+                            Routrix operates exclusively as a high-performance logistics coordination platform that bridges the gap between commercial clients and transport service providers for the movement of goods across India. The company currently focuses on <strong>business-to-business (B2B)</strong> logistics services and does not directly provide packers and movers or residential shifting services. Our role is primarily that of a facilitator, utilizing advanced coordination protocols to ensure that shipments are managed with maximum efficiency between pickup and delivery points. 
+                        </p>
+                    </section>
+
+                    <section id="eligibility">
+                        <h2 class="orbitron text-xl text-white mb-6 flex items-baseline gap-4">
+                            <span class="text-red-600 text-2xl">02</span> User Eligibility
+                        </h2>
+                        <p class="description-text">
+                            By utilizing the Routrix platform, you confirm that you are at least 18 years of age and possess the legal capacity to enter into a binding agreement. Users are strictly required to provide accurate, complete, and verifiable information during the booking process and all subsequent communications. Any misuse of the platform—including but not limited to providing fraudulent details or engaging in illegal activities—will result in immediate termination of service.
+                        </p>
+                    </section>
+
+                    <section id="dispatch">
+                        <h2 class="orbitron text-xl text-white mb-6 flex items-baseline gap-4">
+                            <span class="text-red-600 text-2xl">03</span> Booking & Dispatch Policy
+                        </h2>
+                        <p class="description-text">
+                            All booking requests placed through the Routrix ecosystem are subject to vehicle availability and internal administrative confirmation. To ensure security and prevent ghost bookings, Routrix conducts a mandatory reconfirmation protocol with the client via registered contact channels before any vehicle is dispatched to the pickup site. A booking is only deemed "Final" once this reconfirmation is successful.
+                        </p>
+                    </section>
+
+                    <section id="cancellation" class="security-alert p-8 rounded-2xl">
+                        <h2 class="orbitron text-xl text-white mb-6 flex items-baseline gap-4">
+                            <span class="text-red-600 text-2xl">04</span> Cancellation Policy
+                        </h2>
+                        <p class="description-text">
+                            Our cancellation policy is designed to address the logistical overhead of mobilizing transport assets. <strong>Once goods are dispatched, they cannot be recalled unless under extraordinary circumstances explicitly agreed upon in writing with Routrix management.</strong> Furthermore, if the vehicle is already en route or has arrived at the designated pickup location, additional charges covering the distance traveled, mobilization time, and fuel consumption will be billed to the client at current operational rates.
+                        </p>
+                    </section>
+
+                    <section id="payments">
+                        <h2 class="orbitron text-xl text-white mb-6 flex items-baseline gap-4">
+                            <span class="text-red-600 text-2xl">05</span> Payment Security
+                        </h2>
+                        <p class="description-text">
+                            All payments must be processed exclusively through the official Routrix bank accounts. <strong>Clients are strictly prohibited from making any direct payments to drivers or agents.</strong> Every Routrix field employee carries an official ID card with a unique, verified QR code—clients must verify this ID before completing any transaction. All payments must be strictly in the name of "ROUTRIX".
+                        </p>
+                    </section>
+
+                    <section id="verification">
+                        <h2 class="orbitron text-xl text-white mb-6 flex items-baseline gap-4">
+                            <span class="text-red-600 text-2xl">06</span> Verification & Documents
+                        </h2>
+                        <p class="description-text">
+                            Routrix does not publicly display full GST or MSME registration details for security reasons. Clients requiring comprehensive verification for internal compliance are invited to visit the Routrix regional offices in person to inspect all legitimate documentation and regulatory certificates.
+                        </p>
+                    </section>
+
+                    <section id="billing">
+                        <h2 class="orbitron text-xl text-white mb-6 flex items-baseline gap-4">
+                            <span class="text-red-600 text-2xl">07</span> Billing & GST
+                        </h2>
+                        <p class="description-text">
+                            Invoices detail GST rates and service fees. Penal interest of <strong class="text-white">24% per annum</strong> is applied to payments delayed beyond 15 days. Detailed billing summaries are provided upon successful delivery and verification of the consignment.
+                        </p>
+                    </section>
+                </div>
+
+                <div class="my-24 border-t border-zinc-800"></div>
+
+                <!-- PRIVACY POLICY SECTION -->
+                <header class="mb-16" id="privacy-policy">
+                    <div class="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-green-600/10 border border-green-600/20 text-green-500 text-[10px] font-bold uppercase tracking-widest mb-6">
+                        Legal Segment 02
+                    </div>
+                    <h1 class="orbitron text-4xl md:text-6xl font-extrabold text-white mb-6 uppercase tracking-tight">Privacy Policy</h1>
+                </header>
+
+                <div class="prose prose-invert max-w-none space-y-12">
+                    
+                    <section id="privacy-intro" class="privacy-highlight p-8 rounded-2xl">
+                        <h2 class="orbitron text-xl text-white mb-6">Privacy, Data & Platform Usage</h2>
+                        <p class="description-text text-zinc-300">
+                            At Routrix, the privacy and security of our users is a top priority. By using our platform, you agree to the collection and use of information strictly for operational, communication, and service improvement purposes. 
+                        </p>
+                        <p class="description-text text-zinc-400 text-sm">
+                            We may collect personal information such as your name, contact details, business information, pickup and delivery addresses, and transaction data. Routrix does not sell, rent, or misuse user data. However, certain information may be shared with transport partners or third-party service providers strictly for the purpose of fulfilling logistics operations.
+                        </p>
+                    </section>
+
+                    <section id="cookies">
+                        <h2 class="orbitron text-xl text-white mb-6">Cookies & Tracking Technologies</h2>
+                        <p class="description-text">
+                            Routrix may use cookies and similar technologies to enhance user experience, store preferences, and analyze platform usage. These technologies help us understand how you interact with our portal, allowing us to optimize performance. Users can choose to disable cookies through their browser settings; however, some features of the platform may not function properly as a result.
+                        </p>
+                    </section>
+
+                    <section id="fraud">
+                        <h2 class="orbitron text-xl text-white mb-6">Fraud Prevention & Security</h2>
+                        <p class="description-text">
+                            Routrix actively monitors activities to prevent fraud, unauthorized access, and misuse of the platform. We employ robust digital monitoring to detect suspicious behavior, including fake bookings, payment manipulation, or misuse of company identity. Any such activity will lead to immediate account suspension and the initiation of formal legal action.
+                        </p>
+                    </section>
+
+                    <section id="responsibility">
+                        <h2 class="orbitron text-xl text-white mb-6">User Responsibility & Safe Usage</h2>
+                        <p class="description-text">
+                            Users are expected to use Routrix responsibly and ensure that all provided information is accurate. Routrix does not knowingly collect sensitive personal data beyond what is required for logistics operations. It is the user's duty to maintain the confidentiality of their booking details and interaction logs.
+                        </p>
+                    </section>
+
+                    <section id="compliance">
+                        <h2 class="orbitron text-xl text-white mb-6">Global Compliance Mindset</h2>
+                        <p class="description-text">
+                            While Routrix primarily operates in India, we follow standard digital practices aligned with global data protection principles to ensure transparency, accountability, and trust. Our internal protocols are designed to treat user data with the highest level of professional care, mirroring international standards for B2B logistics data handling.
+                        </p>
+                    </section>
+                </div>
+
+                <div class="my-24 border-t border-zinc-800"></div>
+
+                <!-- EMPLOYEE CODE OF CONDUCT SECTION -->
+                <header class="mb-16" id="employee-conduct">
+                    <div class="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-blue-600/10 border border-blue-600/20 text-blue-500 text-[10px] font-bold uppercase tracking-widest mb-6">
+                        Legal Segment 03
+                    </div>
+                    <h1 class="orbitron text-3xl md:text-5xl font-extrabold text-white mb-6 uppercase tracking-tight">Employee Code of Conduct</h1>
+                </header>
+
+                <div class="prose prose-invert max-w-none space-y-12">
+                    <section id="official-statement" class="employee-policy-bg p-8 rounded-2xl">
+                        <h2 class="orbitron text-xl text-white mb-6">📝 Official Statement</h2>
+                        <p class="text-zinc-400 text-xs mb-4">Effective Date: 12-05-2025</p>
+                        <p class="description-text">
+                            This document outlines the professional standards, responsibilities, operational guidelines, and data security practices for all individuals associated with Routrix. The objective of this policy is to create a safe, transparent, and efficient working environment while maintaining the highest level of trust and satisfaction for our clients.
+                        </p>
+                        <p class="description-text">
+                            By joining Routrix, every employee agrees to uphold the company’s core values of honesty, responsibility, discipline, and respect. This policy is not only a set of rules but a mutual commitment—Routrix ensures support, safety, and growth opportunities, while employees ensure professional conduct and service excellence.
+                        </p>
+                    </section>
+
+                    <section id="scope">
+                        <h2 class="orbitron text-xl text-white mb-6 flex items-center gap-3">👥 Scope of Employment</h2>
+                        <p class="description-text">
+                            This policy applies to all individuals working with Routrix, including drivers, labour staff, supervisors, operation managers, support teams, and any future roles introduced as the company expands. It is applicable to all employment types, including permanent, temporary, contract-based, freelance, and partner roles. Every individual associated with Routrix represents the company and is expected to maintain professionalism at all times.
+                        </p>
+                    </section>
+
+                    <section id="emp-verification">
+                        <h2 class="orbitron text-xl text-white mb-6 flex items-center gap-3">🪪 Verification & Onboarding</h2>
+                        <p class="description-text">
+                            To ensure safety, authenticity, and accountability, all employees must complete a mandatory verification process. Each employee is required to submit valid government-issued identification and current address proof. Drivers must additionally provide a valid driving license and relevant vehicle documents. Routrix reserves the right to verify all submitted documents and may reject or suspend onboarding in case of incomplete, invalid, or suspicious information.
+                        </p>
+                    </section>
+
+                    <section id="emp-security">
+                        <h2 class="orbitron text-xl text-white mb-6 flex items-center gap-3">🔐 Data Security & Client Privacy</h2>
+                        <p class="description-text">
+                            Routrix handles sensitive information such as client details, addresses, and shipment data. All employees are strictly required to maintain confidentiality and use this data only for official work purposes. Employees must not share, misuse, or access data beyond their assigned role. Unauthorized use of the driver portal or internal data is strictly prohibited. Any breach will result in immediate termination and potential legal action.
+                        </p>
+                    </section>
+
+                    <section id="emp-financial">
+                        <h2 class="orbitron text-xl text-white mb-6 flex items-center gap-3">💰 Payment Rules & Financial Discipline</h2>
+                        <p class="description-text">
+                            All client payments must be made only through official Routrix payment channels. Employees must not accept direct payments, request extra charges, or negotiate pricing outside official orders. If a client attempts to make a direct payment, the employee must guide them to official methods. Salaries will be transferred directly to registered bank accounts.
+                        </p>
+                    </section>
+
+                    <section id="emp-trips">
+                        <h2 class="orbitron text-xl text-white mb-6 flex items-center gap-3">📲 Trip Management & Tracking</h2>
+                        <p class="description-text">
+                            Accurate tracking and timely updates are essential. Whenever a Trip ID or Tracking ID is assigned, employees must ensure that all updates are correct, real-time, and honest. False or misleading updates can damage client trust and negatively impact company reputation.
+                        </p>
+                        <div class="bg-zinc-900 border border-zinc-800 p-6 rounded-xl mt-4">
+                            <h4 class="orbitron text-sm text-blue-400 mb-2">Verification Protocol</h4>
+                            <p class="text-zinc-500 text-sm">Employees must confirm the identity of the receiver through OTP or other approved verification methods before handing over goods.</p>
+                        </div>
+                    </section>
+
+                    <section id="emp-safety">
+                        <h2 class="orbitron text-xl text-white mb-6 flex items-center gap-3">🚑 Emergency Support & Behavior</h2>
+                        <p class="description-text">
+                            Employees are expected to maintain a polite, respectful, and professional attitude. In case of issues, avoid arguments and immediately inform the support team. Routrix prioritizes safety; in case of accidents or breakdowns, inform the support team immediately for assistance.
+                        </p>
+                    </section>
+
+                    <section id="emp-eval">
+                        <h2 class="orbitron text-xl text-white mb-6 flex items-center gap-3">⭐ Performance & Discipline</h2>
+                        <p class="description-text">
+                            Employees are assessed on punctuality, behavior, work accuracy, and tracking updates. High-performing employees may receive incentives and growth opportunities. Conversely, Routrix follows a zero-tolerance policy for fraud, theft, or misuse of company systems, which will result in removal and legal consequences.
+                        </p>
+                    </section>
+
+                    <section id="emp-exit">
+                        <h2 class="orbitron text-xl text-white mb-6 flex items-center gap-3">🚪 Exit Policy</h2>
+                        <p class="description-text">
+                            Employees who wish to leave Routrix must provide at least one week’s prior notice along with a valid reason to ensure a smooth transition. Leaving without notice is considered a violation of company policy.
+                        </p>
+                    </section>
+                </div>
+
+                <div class="my-24 border-t border-zinc-800"></div>
+
+                <!-- NEW ACCEPTANCE & BINDING SECTIONS -->
+                <div class="prose prose-invert max-w-none space-y-12">
+                    <section id="acceptance">
+                        <h2 class="orbitron text-xl text-white mb-6 flex items-center gap-3">
+                            <span class="text-2xl">📜</span> Acceptance of Terms
+                        </h2>
+                        <p class="description-text">
+                            By accessing, browsing, or using the Routrix website, application, or any of its services, you acknowledge that you have read, understood, and agreed to be bound by these Terms and Conditions, along with our Privacy Policy and other applicable policies.
+                        </p>
+                        <p class="description-text">
+                            Your continued use of the Routrix platform, including booking services, interacting with our system, or communicating with our team, shall be considered as your full and unconditional acceptance of these terms. If you do not agree with any part of these Terms, you are advised not to use the Routrix platform or its services.
+                        </p>
+                    </section>
+
+                    <section id="binding" class="bg-zinc-900/50 p-8 rounded-2xl border border-zinc-800">
+                        <h2 class="orbitron text-xl text-white mb-6 flex items-center gap-3">
+                            <span class="text-2xl text-yellow-500">⚠️</span> Binding Agreement
+                        </h2>
+                        <p class="description-text text-white font-medium italic">
+                            Use of Routrix services constitutes a legally binding agreement between the user and Routrix, whether or not a physical or digital signature is provided.
+                        </p>
+                    </section>
+                </div>
+
+                <div class="mt-12 p-8 glass-card rounded-2xl">
+                    <h3 class="orbitron text-lg mb-4">Legal Contact</h3>
+                    <div class="grid md:grid-cols-2 gap-8 text-sm">
+                        <div class="space-y-2">
+                            <p class="text-zinc-500 uppercase text-[10px] font-bold tracking-widest">Email Support</p>
+                            <p class="text-white">Routrix.info@gmail.com</p>
+                            <p class="text-white">Routrix.in@gmail.com</p>
+                        </div>
+                        <div class="space-y-2">
+                            <p class="text-zinc-500 uppercase text-[10px] font-bold tracking-widest">Headquarters</p>
+                            <p class="text-zinc-300 leading-relaxed">
+                                Flat No. 127, 2nd Floor, PKT-A2,<br>
+                                Sector 17, Rohini, New Delhi - 110089
+                            </p>
+                        </div>
+                    </div>
+                </div>
+            </article>
+        </div>
+    </main>
+
+    <!-- FOOTER -->
+    <footer>
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-12 max-w-7xl mx-auto">
+            <div>
+                <h3 class="orbitron text-white text-lg mb-4">ROUTRIX</h3>
+                <p class="text-zinc-500 text-sm"><strong>Goods Transport & Logistics Services</strong></p>
+                <p class="mt-4 text-zinc-500 text-xs leading-relaxed">
+                    Registered Office:<br>
+                    Flat No. 127, 2nd Floor, Pkt-A2, Rohini, New Delhi – 110089
+                </p>
+            </div>
+            <div>
+                <h3 class="orbitron text-white text-lg mb-4">LEGAL</h3>
+                <div class="flex flex-col gap-2 text-sm text-zinc-500">
+                    <a href="#nature" class="hover:text-white">Terms & Conditions</a>
+                    <a href="#privacy-policy" class="hover:text-white">Privacy Policy</a>
+                    <a href="#employee-conduct" class="hover:text-white">Employee Conduct</a>
+                    <a href="contact.html" class="hover:text-white">Grievance Officer</a>
+                </div>
+            </div>
+            <div>
+                <h3 class="orbitron text-white text-lg mb-4">SUPPORT</h3>
+                <div class="space-y-2 text-sm text-zinc-500">
+                    <span class="block"> +91 88262 82253</span>
+                    <span class="block">✉ routrix.info@gmail.com</span>
+                </div>
+            </div>
+        </div>
+        <div class="max-w-7xl mx-auto mt-12 pt-8 border-t border-zinc-900 flex justify-between text-[10px] text-zinc-600 uppercase tracking-widest">
+            <p>&copy; 2026 Routrix. All Rights Reserved.</p>
+            <p>Made with love by Suraj Jha-Founder</p>
+        </div>
+    </footer>
+
+    <script>
+        function toggleMenu() {
+            document.getElementById("navLinks").classList.toggle("active");
+            document.getElementById("overlay").classList.toggle("active");
+        }
+
+        // Sidebar active link state on scroll
+        const sections = document.querySelectorAll('section');
+        const sideLinks = document.querySelectorAll('.legal-sidebar-link');
+
+        window.addEventListener('scroll', () => {
+            let current = '';
+            sections.forEach(section => {
+                const sectionTop = section.offsetTop;
+                if (window.pageYOffset >= sectionTop - 150) {
+                    current = section.getAttribute('id');
+                }
+            });
+
+            sideLinks.forEach(link => {
+                link.classList.remove('active');
+                if (link.getAttribute('href').includes(current)) {
+                    link.classList.add('active');
+                }
+            });
+        });
+
+        // Handle direct links to privacy policy from other pages
+        window.addEventListener('load', () => {
+            if (window.location.hash) {
+                const targetId = window.location.hash;
+                const target = document.querySelector(targetId);
+                if (target) {
+                    setTimeout(() => {
+                        window.scrollTo({
+                            top: target.offsetTop - 100,
+                            behavior: 'smooth'
+                        });
+                        
+                        if(targetId === '#privacy-policy' || targetId === '#employee-conduct') {
+                            target.style.transition = 'background 1s';
+                            target.style.background = 'rgba(59, 130, 246, 0.05)';
+                            setTimeout(() => target.style.background = '', 2000);
+                        }
+                    }, 500);
+                }
+            }
+        });
+    </script>
+<script src="static/js/api-config.js"></script></body>
+</html>

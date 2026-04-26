@@ -1,0 +1,646 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>About Us | ROUTRIX - Premium Logistics</title>
+    
+    <!-- 🔥 ROUTRIX FAVICON -->
+    <link rel="icon" type="image/png" sizes="32x32" href="assets/routrixlogo.png">
+    <link rel="icon" type="image/png" sizes="16x16" href="assets/routrixlogo.png">
+    <link rel="apple-touch-icon" sizes="180x180" href="assets/routrixlogo.png">
+
+    <!-- Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@600;800;900&family=Inter:wght@300;400;500;600&display=swap" rel="stylesheet">
+    
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: Arial, Helvetica, sans-serif;
+            scroll-behavior: smooth;
+        }
+
+        body {
+            background: #000;
+            color: white;
+            line-height: 1.6;
+            overflow-x: hidden;
+        }
+
+        .orbitron { font-family: 'Orbitron', sans-serif; }
+        .brand-red { color: #e10600; }
+        
+        /* BACKGROUND GRID EFFECT */
+        .bg-grid {
+            position: fixed;
+            top: 0; left: 0; width: 100%; height: 100%;
+            background-image: linear-gradient(to right, #111 1px, transparent 1px),
+                              linear-gradient(to bottom, #111 1px, transparent 1px);
+            background-size: 50px 50px;
+            z-index: -1;
+            mask-image: radial-gradient(circle at center, black, transparent 80%);
+        }
+
+        /* HEADER */
+        .navbar {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 14px 20px;
+            background: #000;
+            border-bottom: 1px solid #111;
+            position: sticky;
+            top: 0;
+            z-index: 1000;
+        }
+
+        .nav-right {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+        }
+
+        .logo {
+            font-family: 'Orbitron', sans-serif;
+            font-weight: 800;
+            font-size: 22px;
+            letter-spacing: 2px;
+            color: #fff;
+            cursor: pointer;
+            text-decoration: none;
+        }
+
+        .nav-links {
+            display: flex;
+            gap: 25px;
+            position: relative;
+        }
+
+        .nav-links a {
+            display: block;
+            color: #aaa;
+            text-decoration: none;
+            font-size: 14px;
+            transition: 0.2s;
+        }
+
+        .nav-links a:hover { color: #fff; }
+
+        .nav-links a.active {
+            color: #e10600;
+            border: none;
+        }
+
+        .menu-btn {
+            font-size: 22px;
+            cursor: pointer;
+            color: #fff;
+            display: none;
+        }
+
+        .overlay {
+            position: fixed;
+            top: 0; right: 0; width: 100%; height: 100%;
+            background: rgba(0,0,0,0.5);
+            z-index: 900;
+            display: none;
+        }
+
+        .overlay.active { display: block; }
+
+        @media(max-width:768px){
+            .menu-btn { display: block; }
+            .nav-links {
+                position: fixed;
+                top: 0;
+                right: -100%;
+                width: 60%;
+                height: 100vh;
+                background: #000;
+                flex-direction: column;
+                padding: 30px;
+                transition: 0.3s;
+                z-index: 1000;
+                border-left: 1px solid #111;
+            }
+            .nav-links.active { right: 0; }
+        }
+
+        /* TEXT MASKING ANIMATION */
+        .mask-animation {
+            background: linear-gradient(
+                to right, 
+                #ffffff 20%, 
+                #444444 40%, 
+                #ffffff 50%, 
+                #444444 60%, 
+                #ffffff 80%
+            );
+            background-size: 200% auto;
+            color: #000;
+            background-clip: text;
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            animation: textShine 5s linear infinite;
+        }
+
+        @keyframes textShine { to { background-position: 200% center; } }
+
+        /* FOUNDER PHOTO FADE ANIMATION */
+        .founder-frame {
+            position: relative;
+            padding: 6px;
+            background: linear-gradient(135deg, #111, #0a0a0a);
+            border-radius: 16px;
+            border: 1px solid #222;
+        }
+
+        .founder-image-container {
+            position: relative;
+            overflow: hidden;
+            border-radius: 10px;
+            aspect-ratio: 4/5;
+        }
+
+        .founder-photo {
+            width: 100%; height: 100%; object-fit: cover;
+            animation: imageFade 4s infinite ease-in-out;
+        }
+
+        @keyframes imageFade {
+            0%, 100% { opacity: 1; transform: scale(1); }
+            50% { opacity: 0.7; transform: scale(1.02); }
+        }
+
+        /* SCANNING ANIMATION FOR NAME BAR */
+        .name-bar-container {
+            position: relative;
+            overflow: hidden;
+            padding: 24px;
+            border-radius: 12px;
+            background: #000;
+            border: 1px solid #111;
+        }
+
+        .name-bar-container::after {
+            content: '';
+            position: absolute;
+            top: -100%; left: 0; width: 100%; height: 3px;
+            background: linear-gradient(to right, transparent, #e10600, transparent);
+            box-shadow: 0 0 20px #e10600;
+            animation: scanBar 4s infinite ease-in-out;
+            z-index: 10;
+        }
+
+        @keyframes scanBar { 0% { top: -5%; } 100% { top: 105%; } }
+
+        .stat-badge {
+            background: #111;
+            border: 1px solid #222;
+            padding: 6px 14px;
+            border-radius: 100px;
+            font-size: 10px;
+            color: #e10600;
+            font-family: 'Orbitron', sans-serif;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+
+        /* NEW SECTION CUSTOM STYLES */
+        .glass-card {
+            background: rgba(10, 10, 10, 0.6);
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.05);
+            transition: 0.4s ease;
+        }
+        .glass-card:hover {
+            border-color: #e10600;
+            box-shadow: 0 0 30px rgba(225, 6, 0, 0.1);
+            transform: translateY(-5px);
+        }
+
+        .service-card {
+            position: relative;
+            overflow: hidden;
+        }
+        .service-card::before {
+            content: '';
+            position: absolute;
+            top: 0; left: -100%;
+            width: 100%; height: 2px;
+            background: linear-gradient(90deg, transparent, #e10600);
+            transition: 0.5s;
+        }
+        .service-card:hover::before {
+            left: 100%;
+        }
+
+        .neon-btn {
+            position: relative;
+            overflow: hidden;
+            transition: 0.3s;
+            border: 1px solid #e10600;
+            z-index: 1;
+        }
+        .neon-btn::after {
+            content: '';
+            position: absolute;
+            top: 0; left: -100%; width: 100%; height: 100%;
+            background: #e10600;
+            transition: 0.4s;
+            z-index: -1;
+        }
+        .neon-btn:hover::after {
+            left: 0;
+        }
+
+        .timeline-dot {
+            width: 12px; height: 12px;
+            background: #e10600;
+            border-radius: 50%;
+            box-shadow: 0 0 15px #e10600;
+            position: relative;
+        }
+        .timeline-line {
+            width: 2px;
+            background: linear-gradient(to bottom, #e10600, #111);
+        }
+
+        /* FOOTER */
+        footer {
+            background: #000;
+            padding: 60px 40px;
+            border-top: 1px solid #111;
+        }
+
+        .footer-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+            gap: 40px;
+            max-width: 1200px;
+            margin: auto;
+        }
+
+        footer h3 {
+            margin-bottom: 20px;
+            font-size: 16px;
+            font-family: 'Orbitron', sans-serif;
+            color: #fff;
+            letter-spacing: 1px;
+            text-transform: uppercase;
+        }
+
+        footer p, footer li {
+            color: #aaa;
+            font-size: 14px;
+            line-height: 1.6;
+        }
+
+        footer ul { list-style: none; }
+        footer li { margin-bottom: 10px; }
+        footer li a {
+            color: #aaa;
+            text-decoration: none;
+            transition: 0.3s;
+        }
+        footer li a:hover {
+            color: #e10600;
+            padding-left: 5px;
+        }
+
+        /* 🔥 CONNECT CLEAN */
+.connect-icon{
+  width:60px;
+  height:60px;
+  border:1px solid #222;
+  border-radius:10px;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  font-size:22px;
+  color:#fff;
+  transition:0.3s;
+}
+
+.connect-icon:hover{
+  background:#e10600;
+  transform:translateY(-5px);
+}
+
+
+    </style>
+</head>
+<body>
+
+    <div class="bg-grid"></div>
+    <div id="overlay" class="overlay" onclick="toggleMenu()"></div>
+
+    <nav class="navbar">
+        <div class="nav-right">
+            <div class="menu-btn" onclick="toggleMenu()">☰</div>
+            <div class="logo" onclick="window.location.href='index.html'">ROUTRIX</div>
+        </div>
+
+        <div class="nav-links" id="navLinks">
+            <a href="index.html">Home</a>
+            <a href="tracking.html">Track Shipment</a>
+            <a href="booking.html">Booking</a>
+            <a href="services.html">Services</a>
+            <a href="career.html">Career</a>
+            <a href="driver.html">Driver Portal</a>
+            <a href="about-us.html" class="active">About Us</a>
+            <a href="help.html">Help</a>
+            <a href="404.html">Contact</a>
+            <a href="admin.html">Admin</a>
+        </div>
+    </nav>
+
+    <!-- HERO SECTION UPDATED WITH REQUESTED HIERARCHY -->
+    <section class="pt-24 pb-16 px-6 text-center">
+        <div class="max-w-4xl mx-auto">
+            <h1 class="orbitron text-5xl md:text-9xl font-black mb-4 uppercase tracking-tighter mask-animation">
+                ROUTRIX
+            </h1>
+            <h2 class="orbitron text-2xl md:text-4xl text-white font-bold mb-2 uppercase tracking-tight">
+               Goods Transport & Logistics Services
+            </h2>
+            <p class="orbitron text-zinc-700 text-lg md:text-2xl font-semibold uppercase tracking-[0.2em] mb-8">
+                
+            </p>
+            <div class="mt-12">
+                <p class="text-zinc-500 text-[10px] md:text-xs tracking-[0.6em] uppercase font-bold max-w-xl mx-auto">
+                    Established on 12/05/2025 | Headquartered in Rohini, New Delhi
+                </p>
+            </div>
+        </div>
+    </section>
+
+    <main class="max-w-6xl mx-auto px-6 pb-32">
+        <!-- FOUNDER BIO SECTION -->
+        <div id="founder" class="pt-24 border-t border-zinc-900">
+            <div class="flex flex-col lg:flex-row gap-12 lg:gap-20">
+                <div class="w-full lg:w-1/3">
+                    <div class="lg:sticky lg:top-32 space-y-8">
+                        <div class="founder-frame">
+                            <div class="founder-image-container">
+                                <img src="midia/founder_img_2.jpg" alt="Suraj Jha" class="founder-photo" onerror="this.src='https://via.placeholder.com/600x800/0a0a0a/e10600?text=SURAJ+JHA'">
+                            </div>
+                        </div>
+                        
+                        <!-- SCANNING & MASKING BLOCK ON NAME -->
+                        <div class="name-bar-container text-center lg:text-left">
+                            <h2 class="orbitron text-3xl font-black uppercase tracking-tighter mask-animation">
+                                Suraj <span class="brand-red">Jha</span>
+                            </h2>
+                            <p class="orbitron text-zinc-500 text-xs tracking-[0.3em] uppercase font-bold mb-4">Founder & Owner</p>
+                            <div class="flex flex-wrap gap-2 justify-center lg:justify-start">
+                                <span class="stat-badge">API-Powered Supply Chain Connectivity</span>
+                                <span class="stat-badge">Email: routrix.in@gmail.com</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="w-full lg:w-2/3 space-y-8 text-zinc-400">
+                    <h3 class="orbitron text-sm uppercase tracking-widest border-b border-zinc-800 pb-2">The Origin of Routrix</h3>
+                    <p>Suraj Jha is the Founder and Owner of Routrix, established on 12/05/2025. Headquartered in Rohini, New Delhi, Routrix reflects his ambition to create a scalable, technology-driven ecosystem.</p>
+                    <p>Pursuing a Bachelor in Computer Applications (BCA), he integrates Artificial Intelligence and Natural Language Processing (NLP) to solve modern logistics challenges. His vision extends across India and into global markets including France, Dubai, and Russia, Routrix provides end-to-end logistics solutions, including packing, transportation, dispatch handling, and labour support services. With a strong emphasis on precision and execution, every shipment is managed through a structured workflow—ensuring safety, timely delivery, and complete transparency.</p>
+                    <div class="p-8 bg-zinc-900/40 rounded-2xl border-l-4 border-red-600">
+                        <p class="orbitron text-white text-xl font-bold italic">“At Routrix, we don’t just move goods—we take responsibility for every delivery with trust, precision, and commitment.”</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- WHO WE ARE SECTION -->
+        <section class="mt-32">
+            <div class="text-center mb-16">
+                <h2 class="orbitron text-3xl md:text-5xl font-bold text-white mb-4 uppercase tracking-tighter">WHO WE ARE</h2>
+                <div class="w-24 h-1 bg-red-600 mx-auto"></div>
+            </div>
+            <div class="glass-card p-10 rounded-3xl border border-zinc-900 text-center">
+                <p class="text-zinc-400 text-lg leading-relaxed max-w-4xl mx-auto">
+                    ROUTRIX is a modern logistics ecosystem designed for the next era of global commerce. We are more than a transport company; we are a technology partner that ensures your goods move with <span class="text-white font-bold">unmatched speed</span>, <span class="text-white font-bold">absolute trust</span>, and <span class="text-white font-bold">predictive AI precision</span>.
+                </p>
+            </div>
+        </section>
+
+        <!-- MISSION & VISION SECTION -->
+        <section class="mt-32 grid md:grid-cols-2 gap-8">
+            <div class="glass-card p-12 rounded-3xl group">
+                <div class="text-red-600 text-4xl mb-6">🎯</div>
+                <h3 class="orbitron text-2xl font-bold text-white mb-4 uppercase tracking-wider">Our Mission</h3>
+                <p class="text-zinc-500">To provide the fastest, safest, and most reliable logistics solutions across every corner of India, ensuring every delivery strengthens our clients' growth.</p>
+            </div>
+            <div class="glass-card p-12 rounded-3xl group">
+                <div class="text-red-600 text-4xl mb-6">🚀</div>
+                <h3 class="orbitron text-2xl font-bold text-white mb-4 uppercase tracking-wider">Our Vision</h3>
+                <p class="text-zinc-500">To pioneer an AI-powered logistics future where geography is no longer a barrier and efficiency is defined by data-driven intelligence.</p>
+            </div>
+        </section>
+
+        <!-- SERVICES OVERVIEW -->
+        <section class="mt-32">
+            <div class="flex justify-between items-end mb-12">
+                <div>
+                    <h2 class="orbitron text-3xl font-bold text-white uppercase tracking-tighter mask-animation">CORE SERVICES</h2>
+                    <p class="text-zinc-500 text-xs mt-2 uppercase tracking-widest">Technological Logistics Solutions</p>
+                </div>
+                <a href="services.html" class="orbitron text-red-600 text-xs hover:underline uppercase tracking-widest">View All Services →</a>
+            </div>
+            <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
+                <div class="service-card glass-card p-8 rounded-2xl">
+                    <h4 class="orbitron text-white text-sm mb-4">GOODS TRANSPORT</h4>
+                    <p class="text-xs text-zinc-500">Heavy-duty transport across state borders with real-time tracking.</p>
+                </div>
+                <div class="service-card glass-card p-8 rounded-2xl">
+                    <h4 class="orbitron text-white text-sm mb-4">DRIVER NETWORK</h4>
+                    <p class="text-xs text-zinc-500">A vetted community of elite drivers powered by our smart app.</p>
+                </div>
+                <div class="service-card glass-card p-8 rounded-2xl">
+                    <h4 class="orbitron text-white text-sm mb-4">FLEET SOLUTIONS</h4>
+                    <p class="text-xs text-zinc-500">Optimized fleet management using AI-driven maintenance alerts.</p>
+                </div>
+                <div class="service-card glass-card p-8 rounded-2xl">
+                    <h4 class="orbitron text-white text-sm mb-4">CLIENT SERVICES</h4>
+                    <p class="text-xs text-zinc-500">24/7 dedicated support for complex enterprise shipments.</p>
+                </div>
+            </div>
+        </section>
+
+        <!-- STATS SECTION -->
+        <section class="mt-32 py-16 bg-zinc-950/50 rounded-3xl border border-zinc-900">
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-12 text-center">
+                <div>
+                    <div class="orbitron text-5xl font-black text-white mb-2">500+</div>
+                    <div class="text-red-600 text-[10px] tracking-[0.3em] uppercase font-bold">Clients Served</div>
+                </div>
+                <div>
+                    <div class="orbitron text-5xl font-black text-white mb-2">10K+</div>
+                    <div class="text-red-600 text-[10px] tracking-[0.3em] uppercase font-bold">Trips Completed</div>
+                </div>
+                <div>
+                    <div class="orbitron text-5xl font-black text-white mb-2">50+</div>
+                    <div class="text-red-600 text-[10px] tracking-[0.3em] uppercase font-bold">Cities Covered</div>
+                </div>
+            </div>
+        </section>
+
+        <!-- WHY CHOOSE US SECTION -->
+        <section class="mt-32">
+            <div class="text-center mb-16">
+                <h2 class="orbitron text-3xl font-bold text-white uppercase tracking-tighter">WHY CHOOSE ROUTRIX?</h2>
+                <p class="text-zinc-600 text-xs mt-2 uppercase tracking-widest">The Routrix Advantage</p>
+            </div>
+            <div class="grid md:grid-cols-2 lg:grid-cols-4 gap-6">
+                <div class="p-8 border border-zinc-900 rounded-2xl hover:bg-zinc-900/50 transition-all text-center">
+                    <div class="text-white text-2xl mb-4">⚡</div>
+                    <h4 class="orbitron text-white text-xs mb-2">FAST DELIVERY</h4>
+                    <p class="text-zinc-500 text-[10px]">Optimized routes for maximum speed.</p>
+                </div>
+                <div class="p-8 border border-zinc-900 rounded-2xl hover:bg-zinc-900/50 transition-all text-center">
+                    <div class="text-white text-2xl mb-4">🛡️</div>
+                    <h4 class="orbitron text-white text-xs mb-2">SECURE HANDLING</h4>
+                    <p class="text-zinc-500 text-[10px]">Advanced safety protocols for every load.</p>
+                </div>
+                <div class="p-8 border border-zinc-900 rounded-2xl hover:bg-zinc-900/50 transition-all text-center">
+                    <div class="text-white text-2xl mb-4">🗺️</div>
+                    <h4 class="orbitron text-white text-xs mb-2">PAN-INDIA</h4>
+                    <p class="text-zinc-500 text-[10px]">Strategic nodes in every major city.</p>
+                </div>
+                <div class="p-8 border border-zinc-900 rounded-2xl hover:bg-zinc-900/50 transition-all text-center">
+                    <div class="text-white text-2xl mb-4">📞</div>
+                    <h4 class="orbitron text-white text-xs mb-2">24/7 SUPPORT</h4>
+                    <p class="text-zinc-500 text-[10px]">Dedicated monitoring for your cargo.</p>
+                </div>
+            </div>
+        </section>
+
+        <!-- JOURNEY TIMELINE -->
+        <section class="mt-32">
+            <h2 class="orbitron text-3xl font-bold text-white mb-16 text-center uppercase tracking-tighter">OUR JOURNEY</h2>
+            <div class="max-w-md mx-auto relative pl-8 border-l-2 border-zinc-900">
+                <div class="mb-16 relative">
+                    <div class="absolute -left-[39px] top-1 timeline-dot"></div>
+                    <div class="orbitron text-red-600 text-sm mb-1">2025</div>
+                    <h4 class="text-white font-bold mb-2 uppercase">ROUTRIX FOUNDED</h4>
+                    <p class="text-zinc-500 text-sm">Established with a vision to modernize traditional logistics with computer application logic.</p>
+                </div>
+                <div class="mb-16 relative">
+                    <div class="absolute -left-[39px] top-1 timeline-dot"></div>
+                    <div class="orbitron text-red-600 text-sm mb-1">2026</div>
+                    <h4 class="text-white font-bold mb-2 uppercase">DIGITAL INFRASTRUCTURE</h4>
+                    <p class="text-zinc-500 text-sm">Launch of the comprehensive web portal and driver management application suite.</p>
+                </div>
+                <div class="relative">
+                    <div class="absolute -left-[39px] top-1 timeline-dot"></div>
+                    <div class="orbitron text-red-600 text-sm mb-1">THE FUTURE</div>
+                    <h4 class="text-white font-bold mb-2 uppercase">AI AUTONOMOUS LOGISTICS</h4>
+                    <p class="text-zinc-500 text-sm">Integrating predictive global trade corridors across Dubai, Russia, and France.</p>
+                </div>
+            </div>
+        </section>
+
+        <!-- 🔥 CONNECT WITH ROUTRIX (CLEAN) -->
+<section class="mt-40 px-6">
+
+  <!-- SOCIAL -->
+  <div class="flex justify-center gap-6 mb-12">
+
+    <a href="https://wa.me/918826282253" target="_blank" class="connect-icon">
+      <i class="fa-brands fa-whatsapp"></i>
+    </a>
+
+    <a href="https://www.instagram.com/routrix.in/" class="connect-icon">
+      <i class="fa-brands fa-instagram"></i>
+    </a>
+
+    <a href="https://www.facebook.com/Routrix/" class="connect-icon">
+      <i class="fa-brands fa-facebook-f"></i>
+    </a>
+
+    <a href="https://www.linkedin.com/posts/routrixforyou-routrixabrsameabrdayabrdelivery-share-7444410791253925889-_RVe?utm_source=share&utm_medium=member_desktop&rcm=ACoAAEwIjdcBcYOZ9Ojku3ZVnuY616zmk24RXBE" class="connect-icon">
+      <i class="fa-brands fa-linkedin-in"></i>
+    </a>
+
+    <a href="https://www.youtube.com/@ROUTRIX_SURAJ" class="connect-icon">
+      <i class="fa-brands fa-youtube"></i>
+    </a>
+
+  </div>
+
+
+ 
+</section>
+
+        <!-- CALL TO ACTION -->
+        <section class="mt-40 text-center">
+            <h2 class="orbitron text-2xl md:text-4xl text-white font-bold mb-8 uppercase tracking-tighter">READY TO MOVE YOUR GOODS WITH CONFIDENCE?</h2>
+            <div class="flex flex-wrap justify-center gap-6">
+                <a href="404.html" class="neon-btn px-10 py-4 orbitron text-xs text-white uppercase tracking-widest rounded-sm">Contact Us</a>
+                <a href="booking.html" class="px-10 py-4 border border-zinc-700 orbitron text-xs text-white hover:bg-white hover:text-black transition-all uppercase tracking-widest rounded-sm">Get Quote</a>
+                <a href="career.html" class="px-10 py-4 border border-zinc-700 orbitron text-xs text-white hover:bg-white hover:text-black transition-all uppercase tracking-widest rounded-sm">Join as Driver</a>
+            </div>
+        </section>
+    </main>
+
+    <footer>
+        <div class="footer-grid">
+            <div>
+                <h3 class="orbitron">ROUTRIX</h3>
+                <p><strong>Goods Transport & Logistics Services</strong></p>
+                <p>GST NO: 07CXXXXXXXXJ1Z1</p>
+                <p>MSME NO: UDYAM-DL-04-006XXXX</p>
+                <p class="mt-4">
+                    Registered Office:<br>
+                    Flat No. 127, 2nd Floor, Pkt-A2,<br>
+                    Sector-17, Rohini,<br>
+                    New Delhi – 110089
+                </p>
+            </div>
+            
+            <div>
+                <h3>Quick Links</h3>
+                <ul>
+                    <li><a href="index.html">Home</a></li>
+                    <li><a href="services.html">Services</a></li>
+                    <li><a href="tracking.html">Track Shipment</a></li>
+                    <li><a href="booking.html">Booking</a></li>
+                    <li><a href="about-us.html">About Us</a></li>
+                </ul>
+            </div>
+
+            <div>
+                <h3>Driver Portal</h3>
+                <ul>
+                    <li><a href="driver.html">Driver Dashboard</a></li>
+                    <li><a href="career.html">Join Our Fleet</a></li>
+                    <li><a href="help.html">Driver Support</a></li>
+                    <li><a href="admin.html">Admin Login</a></li>
+                </ul>
+            </div>
+
+            <div>
+                <h3>Support</h3>
+                <p> +91 88262 82253</p>
+                <p> routrix.in@gmail.com</p>
+                <p> routrix.info@gmail.com</p>
+                <p class="mt-4"><a href="contact.html" class="text-red-600 hover:text-white transition-all uppercase text-xs font-bold orbitron">Contact Us →</a></p>
+            </div>
+        </div>
+        <div class="text-center mt-16 pt-8 border-t border-zinc-900">
+            <p class="orbitron text-[9px] tracking-[5px] text-zinc-800 uppercase">© 2026 ROUTRIX TRANSPORT SOLUTIONS</p>
+        </div>
+    </footer>
+
+    <script>
+        function toggleMenu() {
+            document.getElementById("navLinks").classList.toggle("active");
+            document.getElementById("overlay").classList.toggle("active");
+        }
+    </script>
+<script src="static/js/api-config.js"></script></body>
+</html>
