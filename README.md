@@ -148,19 +148,7 @@ python -m http.server 3000
 
 ---
 
-## 🔐 Environment Variables
 
-Create `.env` inside `backend/`
-
-```env
-SMTP_USER=your_email@gmail.com
-SMTP_PASS=your_app_password
-SECRET_KEY=your_secret_key
-ADMIN_PASSWORD=admin_password
-DRIVER_PAGE_PASSWORD=driver_password
-```
-
----
 
 ## 🌐 Deployment
 
