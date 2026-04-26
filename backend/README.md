@@ -142,6 +142,12 @@ DRIVER_PAGE_PASSWORD=driver_pass
 📧 [support@routrix.in](mailto:support@routrix.in)
 📩 [surajjhastudy01@gmail.com](mailto:surajjhastudy01@gmail.com)
 
+## 📞 Customer Support
+
+📧 routrix.in@gmail.com  
+📩 routrix.info@gmail.com  
+
+We typically respond within 24 hours.
 ---
 
 ## 📄 License
