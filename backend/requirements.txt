@@ -6,4 +6,4 @@ bcrypt
 apscheduler
 pillow
 python-dotenv
-PyJWT
+PyJWT==2.8.0
