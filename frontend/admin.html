@@ -155,7 +155,7 @@ display:none;
 
 <script>
 
-const BACKEND="http://127.0.0.1:8000"
+const BACKEND="https://routrix.onrender.com"
 
 let map
 let markers=[]
@@ -185,6 +185,7 @@ document.getElementById("loginCard").style.display="none"
 document.getElementById("adminPanel").classList.remove("hidden")
 
 initMap()
+loadTrips()
 
 }else{
 
@@ -397,6 +398,7 @@ body:formData
 .then(r=>r.json())
 .then(data=>{
 alert("Banner Updated Successfully")
+loadBanners() 
 })
 
 }
@@ -474,5 +476,4 @@ loadBanners()
 
 </script>
 
-<script src="static/js/api-config.js"></script></body>
 </html>
