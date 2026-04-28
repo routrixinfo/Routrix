@@ -1,0 +1,17 @@
+{
+  "routes": [
+    { "src": "/", "dest": "/index.html" },
+
+    { "src": "/admin", "dest": "/admin.html" },
+    { "src": "/booking", "dest": "/booking.html" },
+    { "src": "/tracking", "dest": "/tracking.html" },
+    { "src": "/services", "dest": "/services.html" },
+    { "src": "/about", "dest": "/about.html" },
+    { "src": "/career", "dest": "/career.html" },
+    { "src": "/help", "dest": "/help.html" },
+    { "src": "/legal", "dest": "/Legal.html" },
+    { "src": "/driver", "dest": "/driver.html" },
+
+    { "src": "/404", "dest": "/404.html" }
+  ]
+}
