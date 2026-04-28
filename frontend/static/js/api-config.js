@@ -12,7 +12,7 @@ const API_BASE_URL = (() => {
   if (window.location.hostname === "routrix.in" || 
       window.location.hostname === "www.routrix.in" ||
       window.location.hostname === "routrix.vercel.app") {
-    return "https://routrix-backend.onrender.com";
+    return "https://routrix.onrender.com";
   }
   
   // Development (localhost)
@@ -22,10 +22,11 @@ const API_BASE_URL = (() => {
   }
   
   // Fallback
-  return "https://routrix-backend.onrender.com";
+  return "https://routrix.onrender.com";
 })();
 
 console.log("[API] Using backend URL:", API_BASE_URL);
+const BACKEND = API_BASE_URL;
 
 // ===== HELPER: Make API Calls =====
 async function fetchAPI(endpoint, options = {}) {

@@ -364,7 +364,7 @@ input {
   <!-- 🔥 LEFT SIDE -->
   <div style="display:flex; align-items:center; gap:15px;">
     <div class="menu-btn" onclick="toggleMenu()">☰</div>
-    <a href="index.html" class="logo">ROUTRIX</a>
+    <a href="/" class="logo">ROUTRIX</a>
   </div>
 
   <!-- RIGHT SIDE -->
@@ -372,13 +372,13 @@ input {
 
  
 
-  <a href="index.html">Home</a>
-  <a href="tracking.html" class="active">Track Shipment</a>
-  <a href="booking.html">Booking</a>
-  <a href="services.html">Services</a>
-  <a href="about.html">About Us</a>
-  <a href="help.html">Help</a>
-  <a href="legal.html">Legal</a>
+  <a href="/">Home</a>
+  <a href="/tracking" class="active">Track Shipment</a>
+  <a href="/booking">Booking</a>
+  <a href="/services">Services</a>
+  <a href="/about">About Us</a>
+  <a href="/help">Help</a>
+  <a href="/legal">Legal</a>
 
 </div>
 </nav>
@@ -424,7 +424,7 @@ input {
 <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
 <script>
 const OFFICE_LOC = { lat: 28.738972, lng: 77.117343 };
-const BACKEND = "http://127.0.0.1:8000";
+const BACKEND = "https://routrix.onrender.com";
 let map, markerTruck, markerOffice, markerUser;
 let currentData = null;
 let userLoc = OFFICE_LOC;
@@ -582,3 +582,4 @@ function toggleMenu() {
 </script>
 <script src="static/js/api-config.js"></script></body>
 </html>
+
