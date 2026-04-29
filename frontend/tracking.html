@@ -5,9 +5,9 @@
   <title>ROUTRIX – Live Tracking System</title>
 
   <!-- 🔥 ROUTRIX FAVICON (Desktop + Mobile) -->
-<link rel="icon" type="image/png" sizes="32x32" href="assets/routrixlogo.png">
-<link rel="icon" type="image/png" sizes="16x16" href="assets/routrixlogo.png">
-<link rel="apple-touch-icon" sizes="180x180" href="assets/routrixlogo.png">
+<link rel="icon" type="image/png" sizes="32x32" href="/assets/routrixlogo.png">
+<link rel="icon" type="image/png" sizes="16x16" href="/assets/routrixlogo.png">
+<link rel="apple-touch-icon" sizes="180x180" href="/assets/routrixlogo.png">
 
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
@@ -494,7 +494,7 @@ function renderMarkers() {
     iconAnchor: [truckSize/2, truckSize/2],
     html: `
       <div class="radar-pulse" style="width:${truckSize}px; height:${truckSize}px"></div>
-      <img src="assets/Truck_topview.png" class="truck-img" style="width:${truckSize}px; transform:rotate(${currentData.bearing || 0}deg)">
+      <img src="/assets/Truck_topview.png" class="truck-img" style="width:${truckSize}px; transform:rotate(${currentData.bearing || 0}deg)">
 <div class="marker-label" style="font-size:${Math.max(8, truckSize/8)}px">
   ${document.getElementById('lrInput').value || 'RTX-XXXX'}
 </div>    `
