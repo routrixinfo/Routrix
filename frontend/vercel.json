@@ -10,6 +10,7 @@
     { "src": "^/services$", "dest": "/services.html" },
     { "src": "^/career$", "dest": "/career.html" },
     { "src": "^/help$", "dest": "/help.html" },
+    { "src": "^/tracking$", "dest": "/tracking.html" },
     { "src": "^/driver$", "dest": "/driver.html" },
     { "src": "^/legal$", "dest": "/Legal.html" },
 
