@@ -3,6 +3,7 @@
     { "src": "^/$", "dest": "/index.html" },
 
     { "src": "^/assets/(.*)", "dest": "/assets/$1" },
+    { "src": "^/static/(.*)", "dest": "/static/$1" },
 
     { "src": "^/admin$", "dest": "/admin.html" },
     { "src": "^/booking$", "dest": "/booking.html" },
