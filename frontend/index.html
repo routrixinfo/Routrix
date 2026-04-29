@@ -1698,7 +1698,7 @@ const bannerImg = document.getElementById("bannerImg")
 let banners = []
 let current = 0
 
-fetch("/banners")
+fetch(API_BASE_URL + "/banners")
 .then(r => r.json())
 .then(data => {
   banners = data.banners || []
@@ -1711,7 +1711,7 @@ fetch("/banners")
 function showBanner(){
   bannerImg.style.opacity = 0
   setTimeout(()=>{
-    bannerImg.src = "/banners/" + banners[current] + "?t=" + Date.now()
+    bannerImg.src = API_BASE_URL + "/banners/" + banners[current] + "?t=" + Date.now()
     bannerImg.style.opacity = 1
   },200)
   bannerBox.style.display = "block"
