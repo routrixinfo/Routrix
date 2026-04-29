@@ -26,10 +26,16 @@ import mimetypes
 # =============================
 load_dotenv()
 
-SMTP_SERVER = "smtp.gmail.com"
-SMTP_PORT = 465
+SMTP_SERVER = os.getenv("SMTP_SERVER", "smtp.gmail.com")
+SMTP_PORT = int(os.getenv("SMTP_PORT", "465") or "465")
 SMTP_USERNAME = os.getenv("SMTP_USER")
 SMTP_PASSWORD = os.getenv("SMTP_PASS")
+
+BACKEND_HOST = os.getenv("BACKEND_HOST", "0.0.0.0")
+BACKEND_PORT = os.getenv("BACKEND_PORT", "8000")
+FRONTEND_URL = os.getenv("FRONTEND_URL")
+CORS_ORIGINS_ENV = os.getenv("CORS_ORIGINS", "")
+DATABASE_URL = os.getenv("DATABASE_URL")
 
 # Career attachments should stay under Gmail size limits when encoded
 CAREER_ATTACHMENT_MAX_BYTES = 8 * 1024 * 1024   # 8 MB per file
@@ -53,18 +59,29 @@ app = FastAPI(
 )
 
 # ===== CORS CONFIGURATION =====
-ALLOWED_ORIGINS = [
+DEFAULT_ALLOWED_ORIGINS = [
     "https://routrix.in",
     "https://www.routrix.in",
-    "https://routrix.vercel.app",  # Vercel deployment
-    "http://localhost:3000",        # Local frontend
-    "http://localhost:5173",        # Vite dev
+    "https://routrix.vercel.app",
+    "http://localhost:3000",
+    "http://localhost:5173",
     "http://127.0.0.1:3000",
 ]
 
+allowed_origins = list(DEFAULT_ALLOWED_ORIGINS)
+if FRONTEND_URL:
+    allowed_origins.append(FRONTEND_URL)
+
+if CORS_ORIGINS_ENV:
+    allowed_origins.extend([origin.strip() for origin in CORS_ORIGINS_ENV.split(",") if origin.strip()])
+
+# Remove duplicates while preserving order
+seen = set()
+allowed_origins = [origin for origin in allowed_origins if not (origin in seen or seen.add(origin))]
+
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=ALLOWED_ORIGINS,
+    allow_origins=allowed_origins,
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
