@@ -34,6 +34,7 @@ async function fetchAPI(endpoint, options = {}) {
   
   try {
     const response = await fetch(url, {
+      cache: "no-store",
       headers: {
         "Content-Type": "application/json",
         "Accept": "application/json",

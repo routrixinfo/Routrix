@@ -33,11 +33,27 @@ self.addEventListener("activate", event => {
   );
 });
 
-// FETCH → serve from cache
+// FETCH → use network-first for dynamic requests, cache static files
 self.addEventListener("fetch", event => {
+  const requestUrl = new URL(event.request.url);
+  const apiPaths = ["/api", "/admin", "/track", "/update-location", "/verify-otp", "/submit-pod", "/booking", "/career", "/banners"];
+  const isApiRequest = apiPaths.some(path => requestUrl.pathname.startsWith(path));
+
+  if (event.request.method !== "GET" || isApiRequest) {
+    event.respondWith(
+      fetch(event.request).catch(() => caches.match(event.request))
+    );
+    return;
+  }
+
   event.respondWith(
     caches.match(event.request).then(response => {
-      return response || fetch(event.request);
+      return response || fetch(event.request).then(networkResponse => {
+        return caches.open(CACHE_NAME).then(cache => {
+          cache.put(event.request, networkResponse.clone());
+          return networkResponse;
+        });
+      });
     })
   );
 });

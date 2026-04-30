@@ -1,14 +1,13 @@
 # ROUTRIX Backend – GPS + OTP + POD + Booking + Career + Banner
 # Run: uvicorn main:app --reload
 
-from fastapi import FastAPI, UploadFile, File, Form, HTTPException, Depends, Request, BackgroundTasks
+from fastapi import FastAPI, UploadFile, File, Form, HTTPException, Depends, Request, BackgroundTasks, Response
 from fastapi.middleware.cors import CORSMiddleware
 from starlette.requests import ClientDisconnect
 from fastapi.security import HTTPBearer, HTTPAuthorizationCredentials
 from fastapi.staticfiles import StaticFiles
 from fastapi.responses import HTMLResponse
 from pydantic import BaseModel
-from typing import Dict
 from datetime import datetime, timedelta
 from email.message import EmailMessage
 from dotenv import load_dotenv
@@ -20,6 +19,12 @@ import jwt
 import time
 import threading
 import mimetypes
+from urllib.parse import urljoin
+from sqlalchemy import create_engine, Column, String, Float, DateTime, Boolean, Integer, Text
+from sqlalchemy.orm import sessionmaker, declarative_base
+from sqlalchemy.exc import SQLAlchemyError
+import boto3
+from botocore.exceptions import BotoCoreError, ClientError
 
 # =============================
 # LOAD ENV
@@ -33,9 +38,15 @@ SMTP_PASSWORD = os.getenv("SMTP_PASS")
 
 BACKEND_HOST = os.getenv("BACKEND_HOST", "0.0.0.0")
 BACKEND_PORT = os.getenv("BACKEND_PORT", "8000")
+BACKEND_URL = os.getenv("BACKEND_URL", "https://routrix.onrender.com")
 FRONTEND_URL = os.getenv("FRONTEND_URL")
 CORS_ORIGINS_ENV = os.getenv("CORS_ORIGINS", "")
 DATABASE_URL = os.getenv("DATABASE_URL")
+BANNER_STORAGE_TYPE = os.getenv("BANNER_STORAGE_TYPE", "local").strip().lower()
+AWS_S3_BUCKET = os.getenv("AWS_S3_BUCKET")
+AWS_REGION = os.getenv("AWS_REGION", "us-east-1")
+AWS_S3_ENDPOINT = os.getenv("AWS_S3_ENDPOINT")
+BANNER_STORAGE_URL = os.getenv("BANNER_STORAGE_URL")
 
 # Career attachments should stay under Gmail size limits when encoded
 CAREER_ATTACHMENT_MAX_BYTES = 8 * 1024 * 1024   # 8 MB per file
@@ -57,6 +68,151 @@ app = FastAPI(
     docs_url="/docs",
     redoc_url="/redoc"
 )
+
+# ===== DATABASE CONFIGURATION =====
+if not DATABASE_URL:
+    DATABASE_URL = "sqlite:///./routrix.db"
+
+if DATABASE_URL.startswith("postgres://"):
+    DATABASE_URL = DATABASE_URL.replace("postgres://", "postgresql://", 1)
+
+SQLITE_MODE = DATABASE_URL.startswith("sqlite://")
+engine = create_engine(
+    DATABASE_URL,
+    connect_args={"check_same_thread": False} if SQLITE_MODE else {},
+    future=True,
+)
+SessionLocal = sessionmaker(bind=engine, autoflush=False, autocommit=False)
+Base = declarative_base()
+
+class LiveLocation(Base):
+    __tablename__ = "live_locations"
+    lr = Column(String, primary_key=True, index=True)
+    lat = Column(Float, nullable=False)
+    lng = Column(Float, nullable=False)
+    driver_name = Column(String, nullable=False)
+    vehicle_no = Column(String, nullable=False)
+    mobile = Column(String, nullable=False)
+    last_seen = Column(DateTime, nullable=False)
+    status = Column(String, nullable=False, default="in_transit")
+
+class OTPRecord(Base):
+    __tablename__ = "otp_records"
+    lr = Column(String, primary_key=True, index=True)
+    otp = Column(String, nullable=False)
+    expires = Column(DateTime, nullable=False)
+    verified = Column(Boolean, nullable=False, default=False)
+    updated_at = Column(DateTime, nullable=False, default=datetime.utcnow)
+
+class DeliveryRecord(Base):
+    __tablename__ = "delivery_records"
+    lr = Column(String, primary_key=True, index=True)
+    receiver = Column(String, nullable=False)
+    delivered_at = Column(DateTime, nullable=False, default=datetime.utcnow)
+    email_sent = Column(Boolean, nullable=False, default=False)
+    notes = Column(Text, nullable=True)
+
+class Banner(Base):
+    __tablename__ = "banners"
+    id = Column(Integer, primary_key=True, index=True)
+    filename = Column(String, unique=True, nullable=False)
+    storage_url = Column(Text, nullable=True)
+    created_at = Column(DateTime, nullable=False, default=datetime.utcnow)
+
+
+def get_db():
+    db = SessionLocal()
+    try:
+        yield db
+    finally:
+        db.close()
+
+
+def location_to_dict(location: LiveLocation) -> dict:
+    return {
+        "lr": location.lr,
+        "lat": location.lat,
+        "lng": location.lng,
+        "driver_name": location.driver_name,
+        "vehicle_no": location.vehicle_no,
+        "mobile": location.mobile,
+        "last_seen": location.last_seen.isoformat() if location.last_seen else None,
+        "status": location.status,
+    }
+
+
+def get_s3_client():
+    return boto3.client(
+        "s3",
+        region_name=AWS_REGION,
+        endpoint_url=AWS_S3_ENDPOINT or None
+    )
+
+
+def build_banner_url(filename: str) -> str:
+    if BANNER_STORAGE_TYPE == "s3" and AWS_S3_BUCKET:
+        if BANNER_STORAGE_URL:
+            return f"{BANNER_STORAGE_URL.rstrip('/')}/{filename}"
+        if AWS_S3_ENDPOINT:
+            return f"{AWS_S3_ENDPOINT.rstrip('/')}/{AWS_S3_BUCKET}/{filename}"
+        return f"https://{AWS_S3_BUCKET}.s3.{AWS_REGION}.amazonaws.com/{filename}"
+
+    return f"{BACKEND_URL.rstrip('/')}/banners/{filename}"
+
+
+def save_banner_file(file: UploadFile):
+    file_ext = os.path.splitext(file.filename)[1].lower()
+    if file_ext not in {".jpg", ".jpeg"}:
+        raise HTTPException(status_code=400, detail="Only JPG images are supported")
+
+    filename = f"banner_{int(time.time())}.jpg"
+    contents = file.file.read() if hasattr(file.file, "read") else None
+    if contents is None:
+        raise HTTPException(status_code=400, detail="Invalid banner file")
+
+    if BANNER_STORAGE_TYPE == "s3":
+        if not AWS_S3_BUCKET:
+            raise HTTPException(status_code=500, detail="AWS_S3_BUCKET is required for S3 banner storage")
+        try:
+            client = get_s3_client()
+            client.put_object(
+                Bucket=AWS_S3_BUCKET,
+                Key=filename,
+                Body=contents,
+                ContentType="image/jpeg",
+                ACL="public-read"
+            )
+        except (BotoCoreError, ClientError) as e:
+            raise HTTPException(status_code=500, detail=f"S3 upload failed: {e}")
+        return filename, build_banner_url(filename)
+
+    os.makedirs("banners", exist_ok=True)
+    path = os.path.join("banners", filename)
+    with open(path, "wb") as f:
+        f.write(contents)
+
+    return filename, build_banner_url(filename)
+
+
+@app.on_event("startup")
+def startup_event():
+    Base.metadata.create_all(bind=engine)
+
+    if BANNER_STORAGE_TYPE == "s3" and not AWS_S3_BUCKET:
+        raise RuntimeError("BANNER_STORAGE_TYPE=s3 requires AWS_S3_BUCKET and AWS credentials")
+
+    if not SMTP_USERNAME or not SMTP_PASSWORD:
+        print("Warning: SMTP credentials are not fully configured. Email delivery will fail.")
+
+
+@app.middleware("http")
+async def no_cache_middleware(request: Request, call_next):
+    response = await call_next(request)
+    if request.url.path.startswith(("/admin", "/track", "/update-location", "/verify-otp", "/submit-pod", "/booking", "/career", "/banners", "/api")):
+        response.headers["Cache-Control"] = "no-store, no-cache, must-revalidate, max-age=0"
+        response.headers["Pragma"] = "no-cache"
+        response.headers["Expires"] = "0"
+    return response
 
 # ===== CORS CONFIGURATION =====
 DEFAULT_ALLOWED_ORIGINS = [
@@ -95,11 +251,8 @@ os.makedirs("banners", exist_ok=True)
 app.mount("/banners", StaticFiles(directory="banners"), name="banners")
 
 # =============================
-# IN MEMORY DATABASE
+# DATABASE-BACKED STORAGE
 # =============================
-live_locations: Dict[str, dict] = {}
-otp_store: Dict[str, dict] = {}
-delivery_records: Dict[str, dict] = {}
 
 # =============================
 # MODELS
@@ -183,49 +336,52 @@ def driver_login(data: dict):
 # =============================
 @app.post("/admin/upload-banner")
 async def upload_banner(file: UploadFile = File(...), admin=Depends(verify_admin)):
+    filename, url = save_banner_file(file)
 
-    if not file.filename.lower().endswith(".jpg"):
-        raise HTTPException(status_code=400, detail="Only JPG allowed")
+    with SessionLocal() as db:
+        banner = Banner(filename=filename, storage_url=url)
+        db.add(banner)
+        db.commit()
 
-    os.makedirs("banners", exist_ok=True)
-
-    # unique filename
-    filename = f"banner_{int(time.time())}.jpg"
-    path = f"banners/{filename}"
-
-    with open(path, "wb") as f:
-        f.write(await file.read())
-
-    return {"success": True, "file": filename}
+    return {"success": True, "file": filename, "url": url}
 
 @app.get("/banners")
 def get_banners():
+    with SessionLocal() as db:
+        banners = db.query(Banner).order_by(Banner.created_at.desc()).all()
+
+    if banners:
+        return {"banners": [{"filename": banner.filename, "url": banner.storage_url} for banner in banners if banner.storage_url]}
 
     if not os.path.exists("banners"):
         return {"banners": []}
 
-    files = os.listdir("banners")
+    files = [f for f in os.listdir("banners") if f.lower().endswith(".jpg") or f.lower().endswith(".jpeg")]
+    files.sort(reverse=True)
+    return {"banners": [{"filename": name, "url": build_banner_url(name)} for name in files]}
 
-    # only valid jpg files
-    images = [f for f in files if f.endswith(".jpg")]
-
-    # sort newest first
-    images.sort(reverse=True)
-
-    return {"banners": images}
 # =============================
 # DELETE BANNER
 # =============================
 
 @app.delete("/admin/delete-banner/{filename}")
 def delete_banner(filename: str, admin=Depends(verify_admin)):
+    with SessionLocal() as db:
+        banner = db.query(Banner).filter(Banner.filename == filename).first()
+        if banner:
+            db.delete(banner)
+            db.commit()
 
-    path = f"banners/{filename}"
+    if BANNER_STORAGE_TYPE == "s3" and AWS_S3_BUCKET:
+        try:
+            get_s3_client().delete_object(Bucket=AWS_S3_BUCKET, Key=filename)
+        except (BotoCoreError, ClientError) as e:
+            raise HTTPException(status_code=500, detail=f"Could not delete banner from S3: {e}")
 
-    if not os.path.exists(path):
-        raise HTTPException(status_code=404, detail="File not found")
-
-    os.remove(path)
+    else:
+        path = os.path.join("banners", filename)
+        if os.path.exists(path):
+            os.remove(path)
 
     return {"success": True}
 
@@ -234,22 +390,32 @@ def delete_banner(filename: str, admin=Depends(verify_admin)):
 # =============================
 @app.post("/update-location")
 def update_location(data: LocationUpdate):
-
     lr = data.lr.strip()
 
-    # first update -> trip started email
-    if lr not in live_locations:
-        send_start_email(lr, data.driver_name, data.vehicle_no)
-
-    live_locations[lr] = {
-        "lat": data.lat,
-        "lng": data.lng,
-        "driver_name": data.driver_name,
-        "vehicle_no": data.vehicle_no,
-        "mobile": data.mobile,
-        "last_seen": datetime.utcnow().isoformat(),
-        "status": "in_transit"
-    }
+    with SessionLocal() as db:
+        location = db.query(LiveLocation).filter(LiveLocation.lr == lr).first()
+        if not location:
+            send_start_email(lr, data.driver_name, data.vehicle_no)
+            location = LiveLocation(
+                lr=lr,
+                lat=data.lat,
+                lng=data.lng,
+                driver_name=data.driver_name,
+                vehicle_no=data.vehicle_no,
+                mobile=data.mobile,
+                last_seen=datetime.utcnow(),
+                status="in_transit"
+            )
+            db.add(location)
+        else:
+            location.lat = data.lat
+            location.lng = data.lng
+            location.driver_name = data.driver_name
+            location.vehicle_no = data.vehicle_no
+            location.mobile = data.mobile
+            location.last_seen = datetime.utcnow()
+            location.status = "in_transit"
+        db.commit()
 
     return {"success": True}
 
@@ -259,7 +425,9 @@ def update_location(data: LocationUpdate):
 # =============================
 @app.get("/admin/live-trucks")
 def get_live_trucks(admin=Depends(verify_admin)):
-    return live_locations
+    with SessionLocal() as db:
+        locations = db.query(LiveLocation).order_by(LiveLocation.last_seen.desc()).all()
+    return {location.lr: location_to_dict(location) for location in locations}
 
 
 # =============================
@@ -267,13 +435,14 @@ def get_live_trucks(admin=Depends(verify_admin)):
 # =============================
 @app.get("/track/{lr}")
 def track_vehicle(lr: str):
-
     lr = lr.strip()
+    with SessionLocal() as db:
+        location = db.query(LiveLocation).filter(LiveLocation.lr == lr).first()
 
-    if lr not in live_locations:
+    if not location:
         return {"error": "Tracking ID not found"}
 
-    return live_locations[lr]
+    return location_to_dict(location)
 
 
 # =============================
@@ -283,12 +452,23 @@ def track_vehicle(lr: str):
 def generate_otp(lr: str, admin=Depends(verify_admin)):
 
     otp = str(random.randint(100000, 999999))
-
-    otp_store[lr] = {
-        "otp": otp,
-        "expires": datetime.utcnow() + timedelta(minutes=10),
-        "verified": False
-    }
+    with SessionLocal() as db:
+        record = db.query(OTPRecord).filter(OTPRecord.lr == lr).first()
+        if not record:
+            record = OTPRecord(
+                lr=lr,
+                otp=otp,
+                expires=datetime.utcnow() + timedelta(minutes=10),
+                verified=False,
+                updated_at=datetime.utcnow()
+            )
+            db.add(record)
+        else:
+            record.otp = otp
+            record.expires = datetime.utcnow() + timedelta(minutes=10)
+            record.verified = False
+            record.updated_at = datetime.utcnow()
+        db.commit()
 
     return {"lr": lr, "otp": otp}
 
@@ -302,18 +482,21 @@ def verify_otp(payload: dict):
     lr = payload.get("lr", "").strip()
     otp = payload.get("otp", "").strip()
 
-    if lr not in otp_store:
-        return {"success": False, "error": "OTP not generated"}
+    with SessionLocal() as db:
+        record = db.query(OTPRecord).filter(OTPRecord.lr == lr).first()
 
-    record = otp_store[lr]
+        if not record:
+            return {"success": False, "error": "OTP not generated"}
 
-    if datetime.utcnow() > record["expires"]:
-        return {"success": False, "error": "OTP expired"}
+        if datetime.utcnow() > record.expires:
+            return {"success": False, "error": "OTP expired"}
 
-    if record["otp"] != otp:
-        return {"success": False, "error": "Invalid OTP"}
+        if record.otp != otp:
+            return {"success": False, "error": "Invalid OTP"}
 
-    record["verified"] = True
+        record.verified = True
+        record.updated_at = datetime.utcnow()
+        db.commit()
 
     return {"success": True}
 
@@ -339,21 +522,18 @@ async def submit_pod(
     receiver_name: str = Form(...),
     image: UploadFile = File(...)
 ):
-
-    if lr not in otp_store or not otp_store[lr]["verified"]:
-        return {"success": False, "error": "OTP not verified"}
+    with SessionLocal() as db:
+        otp_record = db.query(OTPRecord).filter(OTPRecord.lr == lr).first()
+        if not otp_record or not otp_record.verified:
+            return {"success": False, "error": "OTP not verified"}
 
     os.makedirs("pod_images", exist_ok=True)
-
     image_path = f"pod_images/pod_{lr}.jpg"
 
-    # ✅ save image
     with open(image_path, "wb") as f:
         f.write(await image.read())
 
-    # ✅ send email first
     email_sent = send_pod_email(lr, receiver_name, image_path)
-
     if email_sent:
         try:
             os.remove(image_path)
@@ -361,22 +541,30 @@ async def submit_pod(
         except Exception as e:
             print("POD delete error:", e)
     else:
-        # fallback cleanup after 24 hours if email did not go through
         threading.Thread(
             target=delete_pod_after_delay,
             args=(image_path,),
             daemon=True
         ).start()
 
-    # ✅ save delivery record
-    delivery_records[lr] = {
-        "receiver": receiver_name,
-        "delivered_at": datetime.utcnow().isoformat()
-    }
+    with SessionLocal() as db:
+        delivery = DeliveryRecord(
+            lr=lr,
+            receiver=receiver_name,
+            delivered_at=datetime.utcnow(),
+            email_sent=email_sent,
+            notes=None
+        )
+        db.merge(delivery)
+        db.commit()
 
-    # ✅ update status
-    if lr in live_locations:
-        live_locations[lr]["status"] = "delivered"
+        location = db.query(LiveLocation).filter(LiveLocation.lr == lr).first()
+        if location:
+            location.status = "delivered"
+            db.commit()
+
+    if not email_sent:
+        return {"success": False, "error": "POD email delivery failed"}
 
     return {"success": True}
 
@@ -474,14 +662,13 @@ Request ID: {request_id}
 Time: {datetime.utcnow()}
 """)
 
-        try:
-            send_email(msg)
-            print(f"Admin email sent for Request ID: {request_id}")
+        email_success = send_email(msg)
+        if not email_success:
+            print(f"Failed to send admin email for Request ID: {request_id}")
+            return {"success": False, "error": "Failed to send booking notification email"}
 
-            time.sleep(1) 
-
-        except Exception as e:
-            print(f"Failed to send admin email: {str(e)}")
+        print(f"Admin email sent for Request ID: {request_id}")
+        time.sleep(1)
 
         # ===== SEND EMAIL TO CUSTOMER IF EMAIL PROVIDED =====
         customer_email = data.get('Sender Email', '').strip()
@@ -644,11 +831,12 @@ Founder & CEO – Mr. Suraj Jha
             customer_msg["Cc"] = SMTP_USERNAME  # CC admin to track customer notifications
             customer_msg.set_content("Please view this email in HTML format.")
             customer_msg.add_alternative(html_msg, subtype="html")
-            try:
-                send_email(customer_msg)
-                print(f"Customer email sent to {customer_email} for Request ID: {request_id}")
-            except Exception as e:
-                print(f"Failed to send customer email to {customer_email}: {str(e)}")
+            customer_sent = send_email(customer_msg)
+            if not customer_sent:
+                print(f"Failed to send customer email to {customer_email} for Request ID: {request_id}")
+                return {"success": False, "error": "Failed to send booking confirmation email to the customer"}
+
+            print(f"Customer email sent to {customer_email} for Request ID: {request_id}")
 
         return {
             "success": True,
@@ -970,19 +1158,23 @@ def send_email(msg):
 #3. Fix wrong LR easily
 
 @app.get("/admin/active-trips")
-def get_active_trips():
-    return live_locations
+def get_active_trips(admin=Depends(verify_admin)):
+    with SessionLocal() as db:
+        locations = db.query(LiveLocation).order_by(LiveLocation.last_seen.desc()).all()
+    return {location.lr: location_to_dict(location) for location in locations}
 
 # Admin can reset/cancel a trip by LR – this deletes live location and OTP, allowing a fresh start
 
 @app.post("/admin/reset-trip/{lr}")
-def reset_trip(lr: str):
-
-    if lr in live_locations:
-        del live_locations[lr]
-
-    if lr in otp_store:
-        del otp_store[lr]
+def reset_trip(lr: str, admin=Depends(verify_admin)):
+    with SessionLocal() as db:
+        location = db.query(LiveLocation).filter(LiveLocation.lr == lr).first()
+        if location:
+            db.delete(location)
+        otp_record = db.query(OTPRecord).filter(OTPRecord.lr == lr).first()
+        if otp_record:
+            db.delete(otp_record)
+        db.commit()
 
     return {"success": True}
 # =============================

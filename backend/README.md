@@ -71,6 +71,13 @@ SMTP_PASS=your_password
 SECRET_KEY=your_secret
 ADMIN_PASSWORD=admin_pass
 DRIVER_PAGE_PASSWORD=driver_pass
+DATABASE_URL=postgresql://user:pass@host:5432/database
+BACKEND_URL=https://routrix.onrender.com
+BANNER_STORAGE_TYPE=s3  # local fallback if not using remote storage
+AWS_S3_BUCKET=your-s3-bucket
+AWS_REGION=us-east-1
+AWS_S3_ENDPOINT=
+BANNER_STORAGE_URL=https://your-cdn.example.com
 ```
 
 ---

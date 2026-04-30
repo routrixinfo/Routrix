@@ -1712,7 +1712,9 @@ fetch(API_BASE_URL + "/banners")
 function showBanner(){
   bannerImg.style.opacity = 0
   setTimeout(()=>{
-    bannerImg.src = API_BASE_URL + "/banners/" + banners[current] + "?t=" + Date.now()
+    const banner = banners[current]
+    const bannerUrl = banner.url ? banner.url : (banner.startsWith("http") ? banner : API_BASE_URL + "/banners/" + banner)
+    bannerImg.src = bannerUrl + "?t=" + Date.now()
     bannerImg.style.opacity = 1
   },200)
   bannerBox.style.display = "block"
