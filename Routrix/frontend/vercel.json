@@ -1,0 +1,28 @@
+{
+  "buildCommand": "npm run build",
+  "outputDirectory": ".",
+  "rewrites": [
+    { "source": "/(.*)", "destination": "/index.html" }
+  ],
+  "routes": [
+    { "src": "^/$", "dest": "/index.html" },
+    { "src": "^/index\\.html$", "dest": "/index.html" },
+
+    { "src": "^/assets/(.*)", "dest": "/assets/$1" },
+    { "src": "^/static/(.*)", "dest": "/static/$1" },
+    { "src": "^/midia/(.*)", "dest": "/midia/$1" },
+
+    { "src": "^/admin/?$", "dest": "/admin.html" },
+    { "src": "^/booking/?$", "dest": "/booking.html" },
+    { "src": "^/about/?$", "dest": "/about.html" },
+    { "src": "^/services/?$", "dest": "/services.html" },
+    { "src": "^/career/?$", "dest": "/career.html" },
+    { "src": "^/help/?$", "dest": "/help.html" },
+    { "src": "^/tracking/?$", "dest": "/tracking.html" },
+    { "src": "^/driver/?$", "dest": "/driver.html" },
+    { "src": "^/legal/?$", "dest": "/Legal.html" },
+
+    { "src": "^/404\\.html$", "dest": "/404.html", "status": 404 },
+    { "src": "/(.*)", "dest": "/404.html", "status": 404 }
+  ]
+}
