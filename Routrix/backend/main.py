@@ -1077,13 +1077,13 @@ async def career_form(request: Request, background_tasks: BackgroundTasks):
         return label_map.get(key, key.replace('_', ' ').replace('-', ' ').title())
 
     def format_value(value):
-        if hasattr(value, 'filename') and value.filename:
+        if hasattr(value, "filename") and value.filename:
             return None
         if isinstance(value, (list, tuple)):
             values = [str(item).strip() for item in value if str(item).strip()]
-            return ', '.join(values) if values else 'N/A'
+            return ", ".join(values) if values else "N/A"
         text = str(value).strip()
-        return text or 'N/A'
+        return text or "N/A"
 
     text_lines = [f"New Career Inquiry ({category})", "", f"Applicant: {applicant_name}", ""]
     html_rows = []
