@@ -1713,8 +1713,9 @@ function showBanner(){
   bannerImg.style.opacity = 0
   setTimeout(()=>{
     const banner = banners[current]
-    const bannerUrl = banner.url ? banner.url : (banner.startsWith("http") ? banner : API_BASE_URL + "/banners/" + banner)
-    bannerImg.src = bannerUrl + "?t=" + Date.now()
+    // Use the secure_url from Cloudinary with cache-busting
+    const bannerUrl = banner.url + "?t=" + Date.now()
+    bannerImg.src = bannerUrl
     bannerImg.style.opacity = 1
   },200)
   bannerBox.style.display = "block"

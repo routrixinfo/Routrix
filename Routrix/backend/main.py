@@ -226,7 +226,7 @@ def save_banner_file(file: UploadFile):
     try:
         # Upload to Cloudinary with automatic optimizations
         # Store in 'routrix_banners' folder with timestamp for versioning
-        public_id = f"routrix_banners/banner_{int(time.time() * 1000)}"
+        public_id = f"routrix_banners/banner_{int(time.time())}"
         
         upload_response = cloudinary.uploader.upload(
             contents,
