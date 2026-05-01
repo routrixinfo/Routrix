@@ -1,0 +1,22 @@
+{
+  "name": "routrix-frontend",
+  "version": "1.0.0",
+  "description": "ROUTRIX - Transport and Logistics Management Frontend",
+  "private": true,
+  "scripts": {
+    "build": "echo 'Frontend is static - no build required'",
+    "start": "http-server .",
+    "dev": "http-server . --port 3000"
+  },
+  "keywords": [
+    "routrix",
+    "transport",
+    "logistics",
+    "gps",
+    "tracking"
+  ],
+  "author": "Routrix",
+  "license": "MIT",
+  "dependencies": {},
+  "devDependencies": {}
+}
