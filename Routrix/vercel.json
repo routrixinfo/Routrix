@@ -1,7 +1,6 @@
 {
   "buildCommand": "cd frontend && npm run build",
   "outputDirectory": "frontend",
-  "env": {
-    "BACKEND_URL": "@backend-url"
-  }
+  "cleanUrls": true,
+  "trailingSlash": false
 }
