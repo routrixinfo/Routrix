@@ -1,0 +1,48 @@
+
+# ROUTRIX Production Requirements
+# Use this for production deployments
+
+# Core Framework
+fastapi==0.104.1
+uvicorn[standard]==0.24.0
+pydantic==2.5.0
+python-dotenv==1.0.0
+
+# Database & ORM
+sqlalchemy==2.0.23
+python-jose[cryptography]==3.3.0
+
+# Security & CORS
+python-multipart==0.0.6
+cryptography==41.0.7
+
+# Email
+aiosmtplib==3.0.1
+
+# HTTP Client
+httpx==0.25.1
+aiohttp==3.9.1
+
+# Image Processing
+Pillow==10.1.0
+
+# Database Drivers
+sqlite3
+
+# Async
+asyncio ==3.4.3
+aiosqlite==0.19.0
+
+# Monitoring & Logging
+python-json-logger==2.0.7
+
+# Production ASGI Server
+gunicorn==21.2.0
+gevent==23.9.1
+
+# Rate Limiting
+slowapi==0.1.9
+
+# CORS
+fastapi-cors==0.0.6
+

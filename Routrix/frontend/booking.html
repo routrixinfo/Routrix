@@ -1,0 +1,626 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>ROUTRIX – Booking Request</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <!-- 🔥 ROUTRIX FAVICON (Desktop + Mobile) -->
+<link rel="icon" type="image/png" sizes="32x32" href="/assets/routrixlogo.png">
+<link rel="icon" type="image/png" sizes="16x16" href="/assets/routrixlogo.png">
+<link rel="apple-touch-icon" sizes="180x180" href="/assets/routrixlogo.png">
+
+  <!-- Vercel Web Analytics -->
+  <script>
+    window.va = window.va || function () { (window.vaq = window.vaq || []).push(arguments); };
+  </script>
+  <script defer src="/_vercel/insights/script.js"></script>
+
+  <!-- Tailwind & Icons -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script src="https://unpkg.com/lucide@latest"></script>
+  <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700;900&family=Inter:wght@400;500;700&display=swap" rel="stylesheet">
+
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          fontFamily: { sans: ['Inter','sans-serif'], rog: ['Orbitron','sans-serif'] },
+          colors: { 'rx-red':'#e10600','rx-dark':'#050505','rx-gray':'#0d0d0d' }
+        }
+      }
+    }
+  </script>
+
+  <style>
+    body{background:radial-gradient(circle at top,#1a0000,#050505);color:#fff;font-family:Inter,sans-serif}
+    .rx-font{font-family:Orbitron,sans-serif;letter-spacing:.08em}
+    .rx-card{background:rgba(18,18,18,.95);border:1px solid rgba(225,6,0,.25);position:relative;backdrop-filter:blur(10px)}
+    .rx-card:before{content:'';position:absolute;top:0;left:0;width:28px;height:28px;border-top:3px solid #e10600;border-left:3px solid #e10600}
+    .form-input{width:100%;padding:.85rem 1rem;background:#050505;border:1px solid #2a2a2a;border-radius:6px;color:#fff;outline:none;transition:all .25s ease;font-size:.9rem}
+    .form-input:focus{border-color:#e10600;box-shadow:0 0 15px rgba(225,6,0,.2)}
+    .btn-primary{background:linear-gradient(135deg,#ff1a1a,#900000);color:#fff;font-weight:900;text-transform:uppercase;clip-path:polygon(5% 0,100% 0,100% 80%,95% 100%,0 100%,0 20%);transition:all .3s}
+    .btn-primary:hover{transform:translateY(-2px);filter:brightness(1.2);box-shadow:0 10px 20px rgba(225,6,0,.35)}
+    .success-screen{position:relative;display:inline-flex;align-items:center;justify-content:center;width:140px;height:140px;border-radius:50%;background:linear-gradient(135deg,#22c55e,#84cc16);box-shadow:0 0 20px rgba(34,197,94,.55);}
+    .success-screen:before{content:'';position:absolute;inset:0;border-radius:50%;border:4px solid rgba(255,255,255,.3);animation:rotate 1.5s linear infinite;}
+    .success-screen .check{width:70px;height:70px;position:relative;}
+    .success-screen .check:after{content:'';position:absolute;left:13px;top:33px;width:12px;height:30px;border-radius:6px;transform:rotate(45deg);background:#fff;animation:check 0.6s ease forwards;}
+    .success-screen .check:before{content:'';position:absolute;left:31px;top:38px;width:40px;height:12px;border-radius:6px;transform:rotate(-45deg);background:#fff;animation:check 0.6s ease 0.1s forwards;}
+    .success-text{font-size:1rem;font-weight:700;color:#22c55e;}
+    @keyframes rotate {to {transform: rotate(360deg);} }
+    @keyframes check {from {opacity:0;transform:scaleY(0); } to {opacity:1;transform:scaleY(1);} }
+    .steps-container{display:flex;justify-content:center;align-items:center;gap:0;margin-bottom:2rem;position:relative}
+    .step-wrapper{display:flex;flex-direction:column;align-items:center;position:relative}
+    .step-connector{width:60px;height:3px;background:#333;position:relative;margin:0 5px}
+    .step-connector.filled{background:#e10600}
+    .step-dot{height:28px;width:28px;border-radius:50%;background:#333;box-shadow:0 0 8px rgba(0,0,0,.6);position:relative;display:flex;align-items:center;justify-content:center;font-weight:bold;font-size:12px;color:#999;transition:all .3s ease}
+    .step-dot:before{content:'';position:absolute;inset:-2px;border-radius:50%;border:2px solid rgba(51,51,51,.4)}
+    .step-dot.red{background:#e10600;box-shadow:0 0 15px rgba(225,6,0,.8),0 0 25px rgba(225,6,0,.4);color:#fff;animation:pulse-red 1.5s ease-in-out infinite}
+    .step-dot.red:before{border-color:rgba(225,6,0,.6)}
+    .step-dot.yellow{background:#facc15;box-shadow:0 0 15px rgba(250,204,21,.8),0 0 25px rgba(250,204,21,.4);color:#000;animation:pulse-yellow 1.5s ease-in-out infinite}
+    .step-dot.yellow:before{border-color:rgba(250,204,21,.6)}
+    .step-dot.green{background:#22c55e;box-shadow:0 0 15px rgba(34,197,94,.8),0 0 25px rgba(34,197,94,.4);color:#fff}
+    .step-dot.green:before{border-color:rgba(34,197,94,.6)}
+    .step-label{font-size:11px;font-weight:bold;text-transform:uppercase;margin-top:8px;text-align:center;letter-spacing:.05em}
+    .step-label.inactive{color:#666}
+    .step-label.active{color:#e10600}
+    @keyframes pulse-red{0%,100%{box-shadow:0 0 15px rgba(225,6,0,.8),0 0 25px rgba(225,6,0,.4)}50%{box-shadow:0 0 20px rgba(225,6,0,1),0 0 35px rgba(225,6,0,.6)}}
+    @keyframes pulse-yellow{0%,100%{box-shadow:0 0 15px rgba(250,204,21,.8),0 0 25px rgba(250,204,21,.4)}50%{box-shadow:0 0 20px rgba(250,204,21,1),0 0 35px rgba(250,204,21,.6)}}
+    .help-text{font-size:11px;color:#9ca3af}
+    .hidden{display:none}
+    .tooltip{position:relative;display:inline-block}
+    .tooltip .tooltiptext{visibility:hidden;width:200px;background-color:#333;color:#fff;text-align:center;border-radius:6px;padding:5px 10px;position:absolute;z-index:1;bottom:125%;left:50%;margin-left:-100px;opacity:0;transition:opacity 0.3s}
+    .tooltip:hover .tooltiptext{visibility:visible;opacity:1}
+     
+    .logo {
+  font-family: 'Orbitron', sans-serif;
+  font-weight: 700;
+  font-size: 22px;
+  letter-spacing: 2px;
+  color: #ffffff;
+  text-decoration: none;
+  }
+
+    /* MOBILE SIDEBAR */
+  .nav-links {
+  position: fixed;
+  top: 0;
+  right: -100%;
+  width: 65%; /* better width */
+  height: 100%;
+  background: #000;
+  padding: 60px 25px; /* spacing from top */
+  display: flex;
+  flex-direction: column;
+  gap: 25px;
+  transition: 0.3s ease;
+  z-index: 1001;
+ }
+
+  .nav-links a {
+  color: #aaa;
+  text-decoration: none;
+  font-size: 16px;
+  font-weight: 500;
+  transition: 0.2s;
+  }
+
+  .nav-links a:hover {
+  color: #fff;
+  }
+
+  .nav-links a.active {
+  color: #e10600;
+  border-left: 3px solid #e10600;
+  padding-left: 10px;
+  }
+
+  .nav-links.active {
+  right: 0;
+   }
+
+/* OVERLAY */
+ #overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: rgba(0,0,0,0.6);
+  display: none;
+  z-index: 1000;
+    }
+
+ #overlay.active {
+  display: block;
+ }
+
+/* CLOSE BTN */
+ .close-btn {
+  position: absolute;
+  top: 20px;
+  right: 20px;
+  font-size: 22px;
+  cursor: pointer;
+ }
+  </style>
+</head>
+<body class="min-h-screen pb-20">
+
+<header class="fixed top-0 w-full bg-black/95 backdrop-blur-md z-50 border-b border-rx-red/30">
+  <div class="max-w-7xl mx-auto flex justify-between items-center h-20 px-6">
+<!-- LEFT: MENU ICON + LOGO -->
+<div class="flex items-center gap-4">
+
+  <!-- MENU ICON -->
+  <div class="text-xl cursor-pointer lg:hidden" onclick="toggleMenu()">☰</div>
+
+  <!-- LOGO -->
+  <a href="/" class="logo">
+    ROUTRIX
+  </a>
+
+</div>
+
+    <!-- DESKTOP NAV -->
+    <nav class="hidden lg:flex gap-6 items-center text-sm font-semibold ml-auto">
+      <a href="/" class="text-gray-300 hover:text-white">Home</a>
+      <a href="/booking" class="text-white border-b-2 border-rx-red">Booking</a>
+      <a href="/tracking" class="text-gray-300 hover:text-white">Track Shipment</a>
+      <a href="/services" class="text-gray-300 hover:text-white">Services</a>
+      <a href="/about" class="text-gray-300 hover:text-white">About Us</a>
+      <a href="/404" class="text-gray-300 hover:text-white">Help</a>
+    </nav>
+
+  </div>
+</header>
+
+<!-- OVERLAY -->
+<div id="overlay" onclick="toggleMenu()"></div>
+
+<!-- MOBILE MENU -->
+<div class="nav-links" id="navLinks">
+
+
+  <a href="/">Home</a>
+  <a href="/tracking">Track Shipment</a>
+  <a href="/booking" class="active">Booking</a>
+  <a href="/services">Services</a>
+  <a href="/about">About Us</a>
+  <a href="/help">Help</a>
+  <a href="/404">Contact</a>
+</div>
+
+
+<main class="pt-32 px-4">
+  <div class="max-w-5xl mx-auto">
+    <div class="steps-container">
+      <div class="step-wrapper">
+        <div id="dot1" class="step-dot red">1</div>
+        <div id="label1" class="step-label active">Fill Form</div>
+      </div>
+      <div class="step-connector filled" id="conn1"></div>
+      <div class="step-wrapper">
+        <div id="dot2" class="step-dot">2</div>
+        <div id="label2" class="step-label inactive">Review</div>
+      </div>
+      <div class="step-connector" id="conn2"></div>
+      <div class="step-wrapper">
+        <div id="dot3" class="step-dot">3</div>
+        <div id="label3" class="step-label inactive">Confirm</div>
+      </div>
+    </div>
+
+    <div class="rx-card p-8 md:p-12 shadow-2xl" id="formContainer">
+      <div id="step1">
+        <div class="mb-10">
+          <h1 class="rx-font text-2xl font-black italic uppercase">Booking Request</h1>
+          <p class="text-xs text-gray-400 mt-1">Fill shipment details. Tracking ID and vehicle will be confirmed by ROUTRIX.</p>
+        </div>
+
+        <form id="bookingForm" method="POST" onsubmit="return false;">
+          <section class="space-y-4" id="basicInfo">
+            <h2 class="rx-font text-sm uppercase text-rx-red">Basic Booking Info</h2>
+            <p class="text-xs text-gray-300">* Required fields</p>
+            <div class="grid md:grid-cols-2 gap-6">
+              <div>
+                <label class="text-[11px] font-bold uppercase text-gray-400">Sender Name * <span class="tooltip">🛈<span class="tooltiptext">Required to contact sender</span></span></label>
+                <input required id="consignorName" name="Sender Name" class="form-input" placeholder="Enter sender full name">
+              </div>
+              <div>
+                <label class="text-[11px] font-bold uppercase text-gray-400">Mobile * <span class="tooltip">🛈<span class="tooltiptext">10-digit mobile number for updates</span></span></label>
+                <input required id="consignorMobile" name="Sender Mobile" class="form-input" placeholder="10-digit mobile number">
+              </div>
+              <div>
+                <label class="text-[11px] font-bold uppercase text-gray-400">From City / Pincode * <span class="tooltip">🛈<span class="tooltiptext">Pickup location details</span></span></label>
+                <input required id="fromCity" name="From City" class="form-input" placeholder="Pickup city and pincode (e.g. Delhi 110015)">
+              </div>
+              <div>
+                <label class="text-[11px] font-bold uppercase text-gray-400">To City / Pincode * <span class="tooltip">🛈<span class="tooltiptext">Delivery location details</span></span></label>
+                <input required id="toCity" name="To City" class="form-input" placeholder="Delivery city and pincode (e.g. Lucknow 226001)">
+              </div>
+              <div class="md:col-span-2">
+                <label class="text-[11px] font-bold uppercase text-gray-400">Pickup Address * <span class="tooltip">🛈<span class="tooltiptext">Complete pickup address</span></span></label>
+                <textarea required id="pickupAddress" name="Pickup Address" class="form-input h-24" placeholder="House no, street, area, city, pincode"></textarea>
+              </div>
+            </div>
+          </section>
+
+          <section class="space-y-4 mt-8">
+            <h2 class="rx-font text-sm uppercase text-rx-red">Consignee (Receiver)</h2>
+            <div class="grid md:grid-cols-2 gap-6">
+              <div>
+                <label class="text-[11px] font-bold uppercase text-gray-400">Receiver Name * <span class="tooltip">🛈<span class="tooltiptext">Receiver's full name</span></span></label>
+                <input required id="consigneeName" name="Receiver Name" class="form-input" placeholder="Enter receiver full name">
+              </div>
+              <div class="md:col-span-2">
+                <label class="text-[11px] font-bold uppercase text-gray-400">Delivery Address * <span class="tooltip">🛈<span class="tooltiptext">Complete delivery address</span></span></label>
+                <textarea required id="deliveryAddress" name="Delivery Address" class="form-input h-24" placeholder="House no, street, area, city, pincode"></textarea>
+              </div>
+            </div>
+          </section>
+
+          <section class="space-y-3 mt-8">
+            <label class="flex items-start gap-2 text-sm">
+              <input type="checkbox" id="ewayConsent" name="E-Way Bill Consent">
+              <span>I confirm that the E-Way Bill (wherever applicable) will be generated by the consignor or sender.</span>
+            </label>
+          </section>
+
+          <button type="button" id="showMoreInfo" onclick="toggleMoreInfo()" class="mt-6 w-full py-3 border border-white/10 rx-font text-xs uppercase">Add more info</button>
+
+          <section id="moreInfoSection" class="hidden">
+            <section class="space-y-4 mt-8">
+              <h2 class="rx-font text-sm uppercase text-rx-red">Consignor (Sender) - More</h2>
+              <div class="grid md:grid-cols-2 gap-6">
+                <div>
+                  <label class="text-[11px] font-bold uppercase text-gray-400">Company Name <span class="tooltip">🛈<span class="tooltiptext">Optional company or shop name</span></span></label>
+                  <input id="companyName" name="Company Name" class="form-input" placeholder="Company or shop name (optional)">
+                </div>
+                <div>
+                  <label class="text-[11px] font-bold uppercase text-gray-400">Email <span class="tooltip">🛈<span class="tooltiptext">Email for confirmations</span></span></label>
+                  <input type="email" id="consignorEmail" name="Sender Email" class="form-input" placeholder="sender@example.com">
+                </div>
+                <div>
+                  <label class="text-[11px] font-bold uppercase text-gray-400">GSTIN <span class="tooltip">🛈<span class="tooltiptext">15-digit GSTIN if available</span></span></label>
+                  <input id="consignorGST" name="Sender GSTIN" class="form-input" placeholder="15-digit GSTIN (if available)">
+                </div>
+              </div>
+            </section>
+
+            <section class="space-y-4 mt-10">
+              <h2 class="rx-font text-sm uppercase text-rx-red">Consignee (Receiver) - More</h2>
+              <div class="grid md:grid-cols-2 gap-6">
+                <div>
+                  <label class="text-[11px] font-bold uppercase text-gray-400">Mobile <span class="tooltip">🛈<span class="tooltiptext">Receiver's mobile for delivery updates</span></span></label>
+                  <input id="consigneeMobile" name="Receiver Mobile" class="form-input" placeholder="10-digit mobile number">
+                </div>
+                <div>
+                  <label class="text-[11px] font-bold uppercase text-gray-400">Email <span class="tooltip">🛈<span class="tooltiptext">Receiver's email for updates</span></span></label>
+                  <input type="email" id="consigneeEmail" name="Receiver Email" class="form-input" placeholder="receiver@example.com">
+                </div>
+                <div>
+                  <label class="text-[11px] font-bold uppercase text-gray-400">GSTIN <span class="tooltip">🛈<span class="tooltiptext">Receiver's GSTIN if applicable</span></span></label>
+                  <input id="consigneeGST" name="Receiver GSTIN" class="form-input" placeholder="15-digit GSTIN (if available)">
+                </div>
+              </div>
+            </section>
+
+            <section class="space-y-4 mt-10">
+              <h2 class="rx-font text-sm uppercase text-rx-red">Movement (Additional)</h2>
+              <div class="grid md:grid-cols-1 gap-6">
+                <div>
+                  <label class="text-[11px] font-bold uppercase text-gray-400">Value of Goods (INR) <span class="tooltip">🛈<span class="tooltiptext">Approximate value for insurance purposes</span></span></label>
+                  <input id="valueOfGoods" name="Value of Goods (INR)" type="number" min="1" class="form-input" placeholder="Approx value in INR (e.g. 75000)">
+                </div>
+              </div>
+            </section>
+
+            <section class="space-y-4 mt-10">
+              <h2 class="rx-font text-sm uppercase text-rx-red">E-Way Bill</h2>
+              <p class="help-text">E-Way Bill is required mainly for interstate or high-value movements. If applicable, our team will guide you.</p>
+              <div class="space-y-3 text-sm">
+                <label class="flex items-center gap-2">
+                  <input type="radio" name="E-Way Bill Status" value="Not Required / Will Confirm" checked>
+                  Not required right now / Will confirm later
+                </label>
+                <label class="flex items-center gap-2">
+                  <input type="radio" name="E-Way Bill Status" value="Already Generated">
+                  Already generated
+                </label>
+              </div>
+              <div class="space-y-2">
+                <label class="text-[11px] font-bold uppercase text-gray-400">E-Way Bill Number (if generated) <span class="tooltip">🛈<span class="tooltiptext">Enter if already generated</span></span></label>
+                <input name="E-Way Bill Number" class="form-input" placeholder="Enter E-Way Bill number (optional)">
+              </div>
+            </section>
+
+            <section class="space-y-4 mt-10">
+              <h2 class="rx-font text-sm uppercase text-rx-red">Services Required</h2>
+              <p class="help-text">Select any additional services you need.</p>
+              <div class="grid md:grid-cols-2 gap-4 text-sm">
+                <label class="flex items-center gap-2"><input type="checkbox" name="Services[]" value="Packing - Carton Box"> Packing - Carton Box</label>
+                <label class="flex items-center gap-2"><input type="checkbox" name="Services[]" value="Packing - Gunny Bag"> Packing - Gunny Bag</label>
+                <label class="flex items-center gap-2"><input type="checkbox" name="Services[]" value="Packing - Rope Packing"> Packing - Rope Packing</label>
+                <label class="flex items-center gap-2"><input type="checkbox" name="Services[]" value="Packing - Customized"> Packing - Customized</label>
+                <label class="flex items-center gap-2"><input type="checkbox" name="Services[]" value="Loading"> Loading</label>
+                <label class="flex items-center gap-2"><input type="checkbox" name="Services[]" value="Unloading"> Unloading</label>
+                <label class="flex items-center gap-2"><input type="checkbox" name="Services[]" value="Door to Door Delivery"> Door to Door Delivery</label>
+                <label class="flex items-center gap-2"><input type="checkbox" name="Services[]" value="Storage"> Storage</label>
+              </div>
+            </section>
+
+            <section class="space-y-4 mt-10">
+              <h2 class="rx-font text-sm uppercase text-rx-red">Goods Details</h2>
+              <textarea id="goodsDescription" name="Goods Description" class="form-input h-28" placeholder="Brief goods description (e.g. 20 bags rice, 10 TVs, 15 cartons)"></textarea>
+              <div class="space-y-2">
+                <h3 class="rx-font text-xs uppercase text-rx-red">Cargo Type</h3>
+                <div class="flex gap-6 text-sm">
+                  <label><input type="radio" name="Cargo Type" value="Single" checked> Single</label>
+                  <label><input type="radio" name="Cargo Type" value="Mixed"> Mixed / Multiple Goods</label>
+                </div>
+              </div>
+              <div class="grid md:grid-cols-3 gap-6">
+                <div>
+                  <label class="text-[11px] font-bold uppercase text-gray-400">Approx Weight (kg) <span class="tooltip">🛈<span class="tooltiptext">Total weight in kg</span></span></label>
+                  <input id="approxWeight" name="Approx Weight (kg)" type="number" min="1" class="form-input" placeholder="Total weight in kg (approx)">
+                </div>
+                <div>
+                  <label class="text-[11px] font-bold uppercase text-gray-400">Total Items <span class="tooltip">🛈<span class="tooltiptext">Number of units or items</span></span></label>
+                  <input id="unitCount" name="Total Items" type="number" min="1" class="form-input" placeholder="Total number of items or units">
+                </div>
+                <div class="flex items-center gap-2 mt-6">
+                  <input type="checkbox" name="Fragile" value="Yes"><label>Fragile</label>
+                </div>
+              </div>
+              <div class="space-y-2">
+                <label class="text-[11px] font-bold uppercase text-gray-400">Breakdown Note (for mixed goods) <span class="tooltip">🛈<span class="tooltiptext">Describe multiple items</span></span></label>
+                <textarea name="Goods Breakdown" class="form-input h-24" placeholder="Describe multiple items (e.g. 20 bags cement, 10 TVs, 15 boxes)"></textarea>
+              </div>
+            </section>
+          </section>
+
+          <button type="button" onclick="goReview()" class="w-full py-5 btn-primary rx-font italic text-sm mt-8">Next</button>
+        </form>
+      </div>
+
+      <div id="step2" class="hidden">
+        <h2 class="rx-font text-xl uppercase text-rx-red mb-4">Review & Confirm</h2>
+        <div id="reviewBox" class="space-y-3 text-sm"></div>
+        <div class="grid grid-cols-2 gap-4 mt-8">
+          <button onclick="backToForm()" class="py-4 border border-white/10 rx-font text-xs uppercase">Edit</button>
+          <button id="submitBookingBtn" type="button" onclick="submitBooking()" class="py-4 btn-primary rx-font italic text-sm">Submit</button>
+        </div>
+      </div>
+
+      <div id="step3" class="hidden text-center py-16 space-y-8">
+        <div class="success-screen mx-auto mb-3">
+          <div class="check"></div>
+        </div>
+        <h2 class="rx-font text-3xl italic uppercase mb-1">Booking Confirmed</h2>
+        <p class="success-text">Thank you for booking with ROUTRIX!</p>
+        <p class="text-green-200 text-sm max-w-md mx-auto leading-relaxed">
+          Your shipment request has been received and is being processed.<br>
+          Our team will assign a vehicle and share tracking details shortly.<br><br>
+          Please keep your Request ID for updates.
+        </p>
+        <div class="bg-black/60 px-6 py-3 border border-white/5 rounded font-mono text-xs text-gray-400">
+          REQUEST_ID: <span id="reqId" class="text-white"></span>
+        </div>
+        <button onclick="location.reload()" class="mt-6 px-8 py-3 border border-white/10 rx-font text-xs uppercase">New Booking</button>
+      </div>
+    </div>
+  </div>
+</main>
+
+<footer class="bg-black border-t border-white/10 mt-20">
+  <div class="max-w-7xl mx-auto px-6 py-12 grid md:grid-cols-3 gap-8 text-sm text-gray-400">
+    <div>
+      <h3 class="rx-font text-white text-sm uppercase mb-3">ROUTRIX</h3>
+      <p><strong>Goods Transport & Logistics Services</strong></p>
+      <p class="mt-2">Registered Office:</p>
+      <p class="text-gray-300">Flat No. 127, 2nd Floor, Pkt-A2,<br>Sector-17, Rohini,<br>New Delhi – 110089</p>
+    </div>
+    <div>
+      <h3 class="rx-font text-white text-sm uppercase mb-3">Contact</h3>
+      <p>📞 <a href="tel:+918826282253" class="hover:text-white">+91 88262 82253</a></p>
+      <p>✉️ <a href="mailto:routrix.info@gmail.com" class="hover:text-white">routrix.info@gmail.com</a></p>
+      <p>✉️ <a href="mailto:routrix.in@gmail.com" class="hover:text-white">routrix.in@gmail.com</a></p>
+    </div>
+    <div>
+      <h3 class="rx-font text-white text-sm uppercase mb-3">Business Details</h3>
+      <p>GST NO: <span class="text-gray-300">07CXXXXXXXXJ1Z1</span></p>
+      <p>MSME NO: <span class="text-gray-300">UDYAM-DL-04-006XXXX</span></p>
+      <p class="mt-2">Mobile:</p>
+      <p class="text-gray-300">+91 88262 82253</p>
+      <h3 class="rx-font text-white text-sm uppercase mt-6 mb-3">Core Services</h3>
+      <ul class="space-y-1 text-gray-400">
+        <li>• Pan India Transportation</li>
+        <li>• Vehicle & Goods Transportation</li>
+        <li>• Packers & Movers (Home & Office)</li>
+        <li>• Heavy Machinery & Trailer Transport</li>
+        <li>• Packing Solutions (Carton / Gunny / Rope)</li>
+        <li>• Construction & Industrial Material Movement</li>
+        <li>• Loading & Unloading with Labour</li>
+        <li>• Per Kg / Unit Based Shifting</li>
+        <li>• Office, Store & Site-to-Site Movement</li>
+        <li>• Short & Long-Term Transport Contracts</li>
+      </ul>
+    </div>
+  </div>
+  <div class="text-center text-xs text-gray-600 border-t border-white/5 py-4">
+    © <script>document.write(new Date().getFullYear())</script> ROUTRIX. All rights reserved.
+  </div>
+</footer>
+
+<script>
+function toggleMoreInfo(){
+  const section = document.getElementById('moreInfoSection');
+  const button = document.getElementById('showMoreInfo');
+  if(!section || !button) return;
+  section.classList.toggle('hidden');
+  button.textContent = section.classList.contains('hidden') ? 'Add more info' : 'Hide additional info';
+}
+
+const dot1 = document.getElementById('dot1');
+const dot2 = document.getElementById('dot2');
+const dot3 = document.getElementById('dot3');
+const step1 = document.getElementById('step1');
+const step2 = document.getElementById('step2');
+const step3 = document.getElementById('step3');
+
+function updateStepDots(step){
+  const label1 = document.getElementById('label1');
+  const label2 = document.getElementById('label2');
+  const label3 = document.getElementById('label3');
+  const conn1 = document.getElementById('conn1');
+  const conn2 = document.getElementById('conn2');
+  
+
+  
+
+
+  // Reset all
+  dot1.className = 'step-dot';
+  dot2.className = 'step-dot';
+  dot3.className = 'step-dot';
+  label1.className = 'step-label inactive';
+  label2.className = 'step-label inactive';
+  label3.className = 'step-label inactive';
+  conn1.className = 'step-connector';
+  conn2.className = 'step-connector';
+  
+  // Apply current step
+  if(step===1){
+    dot1.classList.add('red');
+    label1.classList.remove('inactive');
+    label1.classList.add('active');
+  }
+  if(step===2){
+    dot1.classList.add('red');
+    dot2.classList.add('yellow');
+    label2.classList.remove('inactive');
+    label2.classList.add('active');
+    conn1.classList.add('filled');
+  }
+  if(step===3){
+    dot1.classList.add('red');
+    dot2.classList.add('yellow');
+    dot3.classList.add('green');
+    label3.classList.remove('inactive');
+    label3.classList.add('active');
+    conn1.classList.add('filled');
+    conn2.classList.add('filled');
+  }
+}
+updateStepDots(1);
+
+function goReview(){
+  const r = document.getElementById('reviewBox'); r.innerHTML='';
+
+  function row(label, value){
+    const d = document.createElement('div');
+    d.className = 'flex justify-between';
+    d.innerHTML = `<span>${label}</span><span>${value || 'N/A'}</span>`;
+    r.appendChild(d);
+  }
+
+  row('Sender', document.getElementById('consignorName').value);
+  row('Sender Mobile', document.getElementById('consignorMobile').value);
+  row('From', document.getElementById('fromCity').value);
+  row('To', document.getElementById('toCity').value);
+  row('Pickup Address', document.getElementById('pickupAddress').value);
+  row('Receiver', document.getElementById('consigneeName').value);
+  row('Delivery Address', document.getElementById('deliveryAddress').value);
+
+  const optional = {
+    'Company': document.getElementById('companyName').value,
+    'Sender Email': document.getElementById('consignorEmail').value,
+    'Sender GSTIN': document.getElementById('consignorGST').value,
+    'Receiver Mobile': document.getElementById('consigneeMobile').value,
+    'Receiver Email': document.getElementById('consigneeEmail').value,
+    'Receiver GSTIN': document.getElementById('consigneeGST').value,
+    'Value (INR)': document.getElementById('valueOfGoods').value,
+    'E-Way Status': document.querySelector('input[name="E-Way Bill Status"]:checked')?.value,
+    'E-Way No.': document.querySelector('input[name="E-Way Bill Number"]')?.value,
+    'Services': Array.from(document.querySelectorAll('input[name="Services[]"]:checked')).map(c=>c.value).join(', '),
+    'Goods Desc': document.getElementById('goodsDescription').value,
+    'Weight (kg)': document.getElementById('approxWeight').value,
+    'Total Items': document.getElementById('unitCount').value,
+    'Fragile': document.querySelector('input[name="Fragile"]:checked') ? 'Yes' : 'No',
+    'Cargo Type': document.querySelector('input[name="Cargo Type"]:checked')?.value,
+    'Breakdown': document.querySelector('textarea[name="Goods Breakdown"]')?.value
+  };
+
+  const hasOptional = Object.values(optional).some(v=>v && v.trim());
+  if (hasOptional){
+    const heading = document.createElement('div');
+    heading.className = 'pt-4 text-xs uppercase text-rx-red font-bold';
+    heading.innerText = 'More details';
+    r.appendChild(heading);
+    Object.entries(optional).forEach(([k,v])=>{ if (v && v.trim()) row(k, v); });
+  }
+
+  step1.classList.add('hidden'); step2.classList.remove('hidden'); updateStepDots(2);
+}
+function backToForm(){ step2.classList.add('hidden'); step1.classList.remove('hidden'); updateStepDots(1); }
+
+async function submitBooking(){
+  console.log('submitBooking called');
+  const form = document.getElementById('bookingForm');
+  if(!form.checkValidity()) { form.reportValidity(); return; }
+
+  const btn = document.getElementById('submitBookingBtn');
+  btn.disabled = true;
+  btn.textContent = 'Sending...';
+
+  try {
+   const response = await fetch(`${BACKEND}/booking`, {
+  method: 'POST',
+  body: new FormData(form)
+});
+    const text = await response.text();
+    let result = null;
+
+    console.log('Booking backend response status', response.status);
+    console.log('Booking backend response body', text);
+
+    if (!text || !text.trim()) {
+      throw new Error('Empty response from server. Check backend logs.');
+    }
+
+    try {
+      result = JSON.parse(text);
+    } catch (parseErr) {
+      throw new Error('Invalid server response JSON: ' + parseErr.message + '\nResponse: ' + text);
+    }
+
+    if (response.ok && result && result.success) {
+      document.getElementById('reqId').innerText = result.request_id || 'N/A';
+      step2.classList.add('hidden');
+      step3.classList.remove('hidden');
+      updateStepDots(3);
+    } else {
+      const errText = (result && result.error) ? result.error : 'Unable to submit booking';
+      throw new Error(errText + ' (status ' + response.status + ')');
+    }
+  } catch (err) {
+    console.error('Booking error:', err);
+    alert('Error: ' + err.message);
+    backToForm();
+  } finally {
+    btn.disabled = false;
+    btn.textContent = 'Submit';
+  }
+}
+function toggleMenu() {
+  document.getElementById("navLinks").classList.toggle("active");
+  document.getElementById("overlay").classList.toggle("active");
+}
+
+lucide.createIcons();
+</script>
+
+<script src="/static/js/api-config.js"></script></body>
+</html>
+
+

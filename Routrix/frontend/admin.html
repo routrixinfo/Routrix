@@ -1,0 +1,488 @@
+<!DOCTYPE html>
+<html lang="en"><head>
+  <meta charset="UTF-8">
+<title>ROUTRIX Admin Control Tower</title>
+<!-- 🔥 ROUTRIX FAVICON (Desktop + Mobile) -->
+<link rel="icon" type="image/png" sizes="32x32" href="/assets/routrixlogo.png">
+<link rel="icon" type="image/png" sizes="16x16" href="/assets/routrixlogo.png">
+<link rel="apple-touch-icon" sizes="180x180" href="/assets/routrixlogo.png">
+
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+<!-- Vercel Web Analytics -->
+<script>
+  window.va = window.va || function () { (window.vaq = window.vaq || []).push(arguments); };
+</script>
+<script defer src="/_vercel/insights/script.js"></script>
+
+<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"/>
+
+<!-- API Configuration -->
+<script src="static/js/api-config.js"></script>
+
+<style>
+body{
+background:#111;
+color:white;
+font-family:Arial;
+padding:40px;
+}
+
+h2{
+margin-bottom:20px;
+}
+
+input,button{
+padding:10px;
+margin:6px 0;
+width:100%;
+}
+
+button{
+background:#e10600;
+color:white;
+border:none;
+cursor:pointer;
+}
+
+.logout-btn{
+  background:#444;
+  margin-bottom:15px;
+}
+
+.card{
+background:#1a1a1a;
+padding:20px;
+margin-bottom:20px;
+border-radius:8px;
+}
+
+#map{
+height:420px;
+border-radius:8px;
+margin-top:10px;
+}
+
+.hidden{
+display:none;
+}
+</style>
+
+</head>
+
+<body>
+
+<h2>🚚 ROUTRIX Admin Control Tower</h2>
+
+<!-- LOGIN -->
+<div class="card" id="loginCard">
+
+<h3>Admin Login</h3>
+
+<input id="adminPassword" type="password" placeholder="Enter Admin Password">
+
+<button onclick="login()">Login</button>
+
+<div id="loginStatus"></div>
+
+</div>
+
+<!-- ADMIN PANEL -->
+<div id="adminPanel" class="hidden">
+  
+<button onclick="logout()" style="background:#444;margin-bottom:15px;">
+🚪 Logout
+</button>  
+
+<!-- SEARCH ORDER -->
+<div class="card">
+
+<h3>Search Order</h3>
+
+<input id="lrInput" placeholder="Enter Tracking ID">
+
+<button onclick="searchOrder()">Search</button>
+
+<div id="orderInfo"></div>
+
+</div>
+
+<!-- SEARCH ORDER -->
+<h2>Active Trips</h2>
+<div id="tripList"></div>
+
+<!-- GENERATE OTP -->
+<div class="card">
+
+<h3>Generate OTP</h3>
+
+<button onclick="generateOTP()">Generate OTP</button>
+
+<div id="otpBox"></div>
+
+</div>
+
+<!-- BANNER UPLOAD -->
+<!-- BANNER MANAGER -->
+<div class="card">
+
+<h3>Manage Banners</h3>
+
+<button onclick="loadBanners()">Load Banners</button>
+
+<div id="bannerList"></div>
+
+</div>
+<!-- BANNER UPLOAD -->
+
+<div class="card">
+
+<h3>Upload Homepage Banner</h3>
+
+<input type="file" id="bannerFile" accept=".jpg,.jpeg,.png">
+
+<button onclick="uploadBanner()">Upload Banner</button>
+
+<p>Recommended size: 1000 × 500 landscape JPG</p>
+
+</div>
+
+<!-- LIVE TRUCK MAP -->
+<div class="card">
+
+<h3>Live Truck Monitoring</h3>
+
+<div id="map"></div>
+
+<button onclick="loadLiveTrucks()">Refresh Live Trucks</button>
+
+</div>
+
+</div>
+
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+
+<script>
+
+const BACKEND = API_BASE_URL;
+
+let map
+let markers=[]
+
+function login(){
+
+const password=document.getElementById("adminPassword").value
+
+fetch(`${BACKEND}/admin/login`,{
+method:"POST",
+headers:{
+"Content-Type":"application/json"
+},
+body:JSON.stringify({
+password:password
+})
+})
+.then(r=>r.json())
+.then(data=>{
+
+if(data.access_token){
+
+localStorage.setItem("admin_token",data.access_token)
+
+document.getElementById("loginCard").style.display="none"
+
+document.getElementById("adminPanel").classList.remove("hidden")
+
+initMap()
+loadTrips()
+
+}else{
+
+document.getElementById("loginStatus").innerHTML="Login Failed"
+
+}
+
+})
+
+}
+
+function initMap(){
+
+map=L.map("map").setView([28.6139,77.2090],5)
+
+L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png",{
+maxZoom:19
+}).addTo(map)
+
+}
+
+function searchOrder(){
+
+const lr = document.getElementById("lrInput").value
+
+// 🔥 ADD THIS LINE
+const orderInfo = document.getElementById("orderInfo")
+
+fetch(`${BACKEND}/track/${lr}`)
+.then(r=>r.json())
+.then(data=>{
+
+if(data.error){
+  orderInfo.innerHTML = "Order not found"
+  return
+}
+
+orderInfo.innerHTML = `
+<b>Driver:</b> ${data.driver_name || "N/A"}<br>
+<b>Vehicle:</b> ${data.vehicle_no || "N/A"}<br>
+<b>Mobile:</b> ${data.mobile || "N/A"}<br>
+<b>Status:</b> ${data.status || "N/A"}<br>
+<b>Location:</b> ${data.lat}, ${data.lng}
+`
+
+})
+}
+// 🔥 NEW FUNCTION TO LOAD ACTIVE TRIPS
+function loadTrips(){
+
+  fetch(BACKEND + "/admin/active-trips", {
+    headers:{
+      "Authorization":"Bearer " + localStorage.getItem("admin_token")
+    }
+  })
+  .then(res => res.json())
+  .then(data => {
+
+    console.log("ACTIVE TRIPS:", data); // 🔥 DEBUG
+
+    const container = document.getElementById("tripList");
+    container.innerHTML = "";
+
+    // ✅ HANDLE EMPTY CASE
+    if(!data || Object.keys(data).length === 0){
+      container.innerHTML = "🚫 No active trips right now";
+      return;
+    }
+
+    Object.keys(data).forEach(lr => {
+
+      const trip = data[lr];
+
+      const div = document.createElement("div");
+      div.style = "padding:10px; margin:10px; border:1px solid #333; border-radius:10px";
+
+      div.innerHTML = `
+        <b style="color:#e10600;">${lr}</b><br>
+        Driver: ${trip.driver_name || "N/A"}<br>
+        Vehicle: ${trip.vehicle_no || "N/A"}<br>
+        Status: ${trip.status || "N/A"}<br>
+        <button onclick="cancelTrip('${lr}')">Cancel</button>
+      `;
+
+      container.appendChild(div);
+
+    });
+
+  })
+  .catch(err => {
+    console.error("Trip Load Error:", err);
+    document.getElementById("tripList").innerHTML = "❌ Error loading trips";
+  });
+}
+// 🔥 NEW FUNCTION TO CANCEL A TRIP
+
+function cancelTrip(lr){
+
+  if(!confirm("Cancel this trip?")) return;
+
+  fetch(BACKEND + "/admin/reset-trip/" + lr, {
+    method:"POST",
+    headers:{
+      "Authorization":"Bearer " + localStorage.getItem("admin_token")
+    }
+  })
+  .then(res => res.json())
+  .then(() => {
+    alert("Trip Cancelled ✅");
+    loadTrips(); // refresh list
+  });
+
+}
+
+// 🔥 NEW FUNCTION TO GENERATE OTP
+function generateOTP(){
+
+const lr=document.getElementById("lrInput").value
+
+fetch(`${BACKEND}/admin/generate-otp/${lr}`,{
+method:"POST",
+headers:{
+"Authorization":"Bearer "+localStorage.getItem("admin_token")
+}
+})
+.then(r=>r.json())
+.then(data=>{
+
+otpBox.innerHTML = `
+<div style="font-size:16px; margin-top:10px;">
+  <strong>Generated OTP:</strong> <span style="color:#00ffcc;">${data.otp}</span>
+</div>
+
+<div style="margin-top:15px; line-height:1.6;">
+  Your ROUTRIX delivery verification code. Please share this code with the delivery executive only after receiving your shipment.
+</div>
+
+<div style="margin-top:10px; font-size:18px;">
+  <strong>OTP:</strong> ${data.otp}
+</div>
+
+<div style="margin-top:5px; font-size:13px; opacity:0.7;">
+  Valid for 10 minutes
+</div>
+
+<div style="margin-top:15px; opacity:0.8;">
+  — ROUTRIX Logistics
+</div>
+`;
+})
+
+}
+
+function loadLiveTrucks(){
+
+fetch(`${BACKEND}/admin/live-trucks`,{
+headers:{
+"Authorization":"Bearer "+localStorage.getItem("admin_token")
+}
+})
+.then(r=>r.json())
+.then(data=>{
+
+markers.forEach(m=>map.removeLayer(m))
+markers=[]
+
+for(const lr in data){
+
+const truck=data[lr]
+if(truck.status === "Delivered") continue
+
+
+const marker=L.marker([truck.lat,truck.lng])
+.addTo(map)
+.bindPopup(`
+<b>Tracking ID:</b> ${lr}<br>
+<b>Driver:</b> ${truck.driver_name}<br>
+<b>Vehicle:</b> ${truck.vehicle_no}<br>
+<b>Mobile:</b> ${truck.mobile}
+`)
+
+markers.push(marker)
+
+}
+
+})
+
+}
+
+function uploadBanner(){
+
+const file=document.getElementById("bannerFile").files[0]
+
+if(!file){
+alert("Please select banner image")
+return
+}
+
+const formData=new FormData()
+
+formData.append("file",file)
+
+fetch(`${BACKEND}/admin/upload-banner`,{
+method:"POST",
+headers:{
+"Authorization":"Bearer "+localStorage.getItem("admin_token")
+},
+body:formData
+})
+.then(r=>r.json())
+.then(data=>{
+alert("Banner Updated Successfully")
+loadBanners() 
+})
+
+}
+
+function loadBanners(){
+
+fetch(`${BACKEND}/banners`)
+.then(r => r.json())
+.then(data => {
+
+const box = document.getElementById("bannerList")
+box.innerHTML = ""
+
+if(data.banners.length === 0){
+box.innerHTML = "No banners found"
+return
+}
+
+data.banners.forEach(file => {
+  const filename = file.filename || file.url.split('/').pop()
+  const imageUrl = file.url + "?t=" + Date.now()  // Add cache-busting to Cloudinary URLs
+  const div = document.createElement("div")
+
+  div.innerHTML = `
+    <img src="${imageUrl}" width="100%" style="margin:10px 0; border-radius:6px;">
+    <button onclick="deleteBanner('${filename}')">Delete</button>
+  `
+
+  box.appendChild(div)
+})
+
+})
+}
+
+function logout(){
+  localStorage.removeItem("admin_token")
+  window.location.href = "/"
+}
+window.onload = function(){
+
+  const token = localStorage.getItem("admin_token")
+
+  if(token){
+    document.getElementById("loginCard").style.display="none"
+    document.getElementById("adminPanel").classList.remove("hidden")
+    initMap()
+
+    // 🔥 ADD THIS LINE
+    loadTrips();
+
+  }else{
+    document.getElementById("loginCard").style.display="block"
+  }
+
+}
+// DELETE BANNER
+
+function deleteBanner(filename){
+
+if(!confirm("Delete this banner?")) return
+
+fetch(`${BACKEND}/admin/delete-banner/${filename}`,{
+method:"DELETE",
+headers:{
+"Authorization":"Bearer "+localStorage.getItem("admin_token")
+}
+})
+.then(r => r.json())
+.then(() => {
+alert("Banner Deleted")
+loadBanners()
+})
+
+}
+
+</script>
+
+</html>

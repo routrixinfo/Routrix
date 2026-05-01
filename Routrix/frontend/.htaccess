@@ -1,0 +1,84 @@
+# Apache .htaccess - Static file caching & security
+# Copy to frontend/ directory if using Apache
+
+# ===== COMPRESS TEXT FILES =====
+<IfModule mod_deflate.c>
+    AddType application/javascript .js
+    AddType text/css .css
+    AddType text/html .html
+    AddEncoding gzip .js
+    AddEncoding gzip .css
+    AddEncoding gzip .html
+</IfModule>
+
+# ===== ENABLE GZIP COMPRESSION =====
+<IfModule mod_gzip.c>
+    mod_gzip_on Yes
+    mod_gzip_dechunk Yes
+    mod_gzip_item_include file \.(html?|txt|css|js|json|xml|svg)$
+    mod_gzip_item_include mime ^application/javascript$
+    mod_gzip_item_include mime ^text/.*
+    mod_gzip_item_exclude mime ^image/
+    mod_gzip_level 6
+    mod_gzip_buffers 1200 20480
+</IfModule>
+
+# ===== BROWSER CACHING =====
+<IfModule mod_expires.c>
+    ExpiresActive On
+    
+    # Default
+    ExpiresDefault "access plus 2 days"
+    
+    # HTML - No cache
+    ExpiresByType text/html "access plus 0 minutes"
+    
+    # CSS & JS - 30 days
+    ExpiresByType text/css "access plus 30 days"
+    ExpiresByType application/javascript "access plus 30 days"
+    ExpiresByType text/javascript "access plus 30 days"
+    
+    # Images - 1 year
+    ExpiresByType image/jpeg "access plus 1 year"
+    ExpiresByType image/gif "access plus 1 year"
+    ExpiresByType image/png "access plus 1 year"
+    ExpiresByType image/webp "access plus 1 year"
+    ExpiresByType image/svg+xml "access plus 1 year"
+    ExpiresByType image/x-icon "access plus 1 year"
+    
+    # Fonts - 1 year
+    ExpiresByType font/ttf "access plus 1 year"
+    ExpiresByType font/otf "access plus 1 year"
+    ExpiresByType font/woff "access plus 1 year"
+    ExpiresByType font/woff2 "access plus 1 year"
+    ExpiresByType application/font-woff "access plus 1 year"
+</IfModule>
+
+# ===== SECURITY HEADERS =====
+<IfModule mod_headers.c>
+    Header set X-UA-Compatible "IE=edge"
+    Header set X-Frame-Options "SAMEORIGIN"
+    Header set X-Content-Type-Options "nosniff"
+    Header set X-XSS-Protection "1; mode=block"
+    Header set Referrer-Policy "no-referrer-when-downgrade"
+</IfModule>
+
+# ===== REWRITE RULES (SPA) =====
+<IfModule mod_rewrite.c>
+    RewriteEngine On
+    RewriteBase /
+    
+    # Route all HTML files through index
+    RewriteCond %{REQUEST_FILENAME} !-f
+    RewriteCond %{REQUEST_FILENAME} !-d
+    RewriteRule ^(.*)$ index.html [QSA,L]
+</IfModule>
+
+# ===== DENY ACCESS =====
+<FilesMatch "^\.(env|git|htaccess)">
+    Order allow,deny
+    Deny from all
+</FilesMatch>
+
+# ===== DISABLE INDEXING =====
+Options -Indexes

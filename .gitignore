@@ -1,3 +1,21 @@
+# Environment Variables
+.env
+.env.local
+.env.*.local
+.env.production
+.env.development
+.env.test
+.env.staging
+
+# IDE & Editor
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+.DS_Store
+thumbs.db
+
 # Python
 __pycache__/
 *.py[cod]
@@ -7,6 +25,7 @@ __pycache__/
 env/
 venv/
 ENV/
+.venv
 build/
 develop-eggs/
 dist/
@@ -25,39 +44,26 @@ share/python-wheels/
 .installed.cfg
 *.egg
 MANIFEST
-
-# Virtual environments
-.venv
-venv/
-ENV/
 env.bak/
 venv.bak/
 
-# IDE
-.vscode/
-.idea/
-*.swp
-*.swo
-*~
-.DS_Store
+# Virtual environments
 .project
 .pydevproject
-
-# Environment variables
-.env
-.env.local
-.env.*.local
 
 # Database
 *.sqlite
 *.sqlite3
 *.db
+routrix.db
 database/orders.csv
 
 # Uploads & Media
 uploads/
 midia/
+media/
 pod_images/
+banners/
 
 # Testing
 .pytest_cache/
@@ -67,6 +73,9 @@ htmlcov/
 # Logs
 *.log
 logs/
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
 
 # OS
 .DS_Store
@@ -75,16 +84,34 @@ Thumbs.db
 # Build
 dist/
 build/
-*.egg-info/
 
 # Docker
 docker-compose.override.yml
 
-# Node (if using frontend build tools)
+# Node modules
 node_modules/
+.npm
 package-lock.json
 yarn.lock
 
 # Backup files
 *.bak
 *.backup
+
+# Temporary files
+*.tmp
+*.temp
+.cache/
+
+# Documentation (non-essential guides)
+ARCHITECTURE_DIAGRAMS.md
+DEPLOYMENT_GUIDE.md
+DOCUMENTATION_INDEX.md
+IMPLEMENTATION_SUMMARY.md
+QUICK_REFERENCE.md
+README_PRODUCTION_READY.md
+RENDER_DEPLOYMENT_GUIDE.md
+START_HERE.txt
+TROUBLESHOOTING_ORIGINAL_ISSUES.md
+WORK_COMPLETED_SUMMARY.md
+

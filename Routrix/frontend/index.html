@@ -1,0 +1,1852 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+<link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@600;800&display=swap" rel="stylesheet">
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="description" content="ROUTRIX is a next-generation AI-powered logistics and transport network in India offering real-time shipment tracking, fast delivery services, secure goods transportation, and intelligent booking solutions designed for businesses, construction sites, events, and individuals across the country.">
+<title>ROUTRIX Transport</title>
+<!-- 🔥 ROUTRIX FAVICON (Desktop + Mobile) -->
+<link rel="icon" type="image/png" sizes="32x32" href="/assets/routrixlogo.png">
+<link rel="icon" type="image/png" sizes="16x16" href="/assets/routrixlogo.png">
+<link rel="apple-touch-icon" sizes="180x180" href="/assets/routrixlogo.png">
+
+<!-- Vercel Web Analytics -->
+<script>
+  window.va = window.va || function () { (window.vaq = window.vaq || []).push(arguments); };
+</script>
+<script defer src="/_vercel/insights/script.js"></script>
+
+<style>
+
+*{
+margin:0;
+padding:0;
+box-sizing:border-box;
+font-family:Arial, Helvetica, sans-serif;
+}
+
+body{
+background:#000;
+color:white;
+}
+
+/* HEADER */
+.navbar{
+  display:flex;
+  justify-content:space-between;
+  align-items:center;
+  padding:14px 20px;
+  background:#000;
+  border-bottom:1px solid #111;
+}
+
+/* overlay */
+.overlay{
+  position:fixed;
+  top:0;
+  right:0;
+  width:100%;
+  height:100%;
+  background:rgba(0,0,0,0.5);
+  z-index:900;
+  display:none;
+}
+
+.overlay.active{
+  display:block;
+}
+
+.nav-right{
+  display:flex;
+  align-items:center;
+  gap:15px;
+}
+
+.logo{
+  font-family:'Orbitron', sans-serif;
+  font-weight:800;
+  font-size:22px;
+  letter-spacing:2px;
+  color:#fff;
+  cursor:pointer;
+}
+/* NAV LINKS BASE */
+.nav-links{
+  display:flex;
+  gap:25px;
+  position: relative; /* IMPORTANT */
+}
+
+/* LINKS */
+.nav-links a{
+  display: block;
+  padding: 15px 0 15px 15px;
+  border-bottom: 1px solid #111;
+  color:#aaa;
+  text-decoration:none;
+  font-size:14px;
+  transition:0.2s;
+}
+
+.nav-links a:hover{
+  color:#fff;
+}
+
+
+/* DEFAULT (DESKTOP) */
+.nav-links a.active {
+  color: #e10600;
+  border: none;   /* ❌ no red bar at all */
+}
+
+/* MOBILE ONLY */
+@media(max-width:768px){
+  .nav-links a.active {
+    border-left: 3px solid #e10600;
+    padding-left: 10px;
+  }
+}
+
+
+/* MOBILE */
+@media(max-width:768px){
+
+  .nav-links{
+    position:fixed;
+    top:0;
+    right:-100%;
+    width:50%;
+    height:100vh;
+    background:#000;
+    flex-direction:column;
+    padding:30px;
+    transition:0.3s;
+    z-index:1000;
+  }
+
+  .nav-links.active{
+    right:0;
+  }
+
+  .nav-links a{
+    padding:15px 0 15px 15px;
+    border-bottom:1px solid #111;
+  }
+
+  .close-btn{
+    display:block;
+    position:absolute;
+    top:15px;
+    right:20px;
+    font-size:22px;
+    cursor:pointer;
+    color:#fff;
+    z-index:1100;
+  }
+}
+
+/* DESKTOP HIDE CLOSE */
+.close-btn{
+  display:none;
+}
+nav a{
+color:#ccc;
+text-decoration:none;
+margin-right:22px;
+font-size:15px;
+}
+
+nav a:hover{
+color:#fff;
+}
+
+.menu-btn{
+  font-size:22px;
+  cursor:pointer;
+  color:#fff;
+  display:none; /* hide by default */
+}
+
+@media(max-width:768px){
+  .menu-btn{
+    display:block; /* show only mobile */
+  }
+}
+
+/* BANNER */
+
+#eventBanner{
+width:100%;
+display:none;
+background:#111;
+}
+
+#eventBanner img{
+width:100%;
+height:auto;
+display:block;
+}
+
+
+#bannerImg{
+  transition: opacity 0.5s ease;
+}
+
+/* SERVICES */
+
+.services{
+background:#111;
+padding:70px 20px;
+text-align:center;
+}
+
+.services h2{
+margin-bottom:40px;
+font-size:28px;
+}
+
+.service-grid{
+display:grid;
+grid-template-columns:repeat(auto-fit,minmax(230px,1fr));
+gap:25px;
+max-width:1200px;
+margin:auto;
+}
+
+.service-card{
+background:#1a1a1a;
+padding:35px;
+border-radius:10px;
+transition:0.3s;
+}
+
+.service-card:hover{
+transform:translateY(-5px);
+}
+
+.service-card h3{
+margin-bottom:10px;
+}
+
+/* CTA */
+
+.cta{
+background:#ff6a00;
+text-align:center;
+padding:60px 20px;
+}
+
+.cta h2{
+margin-bottom:20px;
+}
+
+.cta a{
+background:white;
+color:#ff6a00;
+padding:12px 25px;
+text-decoration:none;
+border-radius:6px;
+font-weight:bold;
+}
+
+/* FOOTER */
+
+footer{
+background:#000;
+padding:60px 40px;
+border-top:1px solid #111;
+}
+
+.footer-grid{
+  display:grid;
+  grid-template-columns: repeat(5, 1fr);
+  gap:40px;
+  max-width:1200px;
+  margin:auto;
+}
+
+footer h3{
+margin-bottom:15px;
+font-size:18px;
+}
+
+footer p{
+color:#aaa;
+font-size:14px;
+line-height:1.6;
+}
+
+footer ul{
+list-style:none;
+}
+
+footer li{
+color:#aaa;
+margin-bottom:6px;
+font-size:14px;
+}
+
+.contact span{
+display:block;
+margin-bottom:8px;
+color:#aaa;
+}
+
+/* ===== SERVICES SECTION ===== */
+
+.section {
+  max-width: 1400px;
+  margin: 0 auto 90px;
+  padding: 0 4%;
+}
+
+/* HEADER */
+.category-header {
+  margin-bottom: 14px;
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  gap: 12px;
+}
+
+.category-header h2 {
+  font-family: 'Orbitron';
+  font-size: 1rem;
+  letter-spacing: 2px;
+  color: #fff;
+}
+
+.category-header span {
+  color: #888;
+  font-size: 0.7rem;
+  text-transform: uppercase;
+}
+
+/* DESCRIPTION */
+.section-intro {
+  margin-bottom: 22px;
+  color: #ddd;
+  font-size: 1rem;
+  line-height: 1.8;
+  max-width: 780px;
+}
+
+/* SLIDER CONTAINER */
+.viewport {
+  width: 100%;
+  background: #050505;
+  border-radius: 16px;
+  overflow: hidden;
+  position: relative;
+  border: 1px solid rgba(255,255,255,0.08);
+  box-shadow: 0 24px 60px rgba(0,0,0,0.2);
+}
+
+/* MAIN SLIDER AREA */
+.stage {
+  height: 520px;
+  position: relative;
+  overflow: hidden;
+}
+
+/* SLIDER TRACK */
+.slider {
+  display: flex;
+  height: 100%;
+  transition: transform 0.6s ease;
+}
+
+/* EACH SLIDE */
+.slide {
+  flex: 0 0 100%;
+  height: 100%;
+  position: relative;
+}
+
+/* IMAGE */
+.slide img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+/* TEXT OVERLAY */
+.overlay {
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  width: 100%;
+  padding: 36px 30px;
+  background: linear-gradient(to top, rgba(0,0,0,0.9), transparent);
+}
+
+.overlay h3 {
+  font-family: 'Orbitron';
+  font-size: 1.8rem;
+  margin-bottom: 10px;
+}
+
+.overlay p {
+  color: #eee;
+  font-size: 1rem;
+  margin-bottom: 15px;
+}
+
+/* BUTTON */
+.book-btn {
+  background: #e10600;
+  color: #fff;
+  padding: 12px 30px;
+  text-decoration: none;
+  font-family: 'Orbitron';
+  font-size: 12px;
+  border-radius: 4px;
+}
+
+/* THUMBNAILS */
+.thumbs-container {
+  margin-top: 15px;
+  display: flex;
+  gap: 12px;
+  overflow-x: auto;
+}
+
+.thumb {
+  min-width: 140px;
+  height: 85px;
+  border-radius: 6px;
+  overflow: hidden;
+  cursor: pointer;
+  opacity: 0.3;
+  transition: 0.3s;
+}
+
+.thumb.active {
+  opacity: 1;
+  border: 2px solid #e10600;
+}
+
+.thumb img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.thumb {
+  opacity: 0.4;
+  transition: 0.3s;
+}
+
+.thumb:hover {
+  opacity: 1;
+  transform: scale(1.05);
+}
+
+.thumb.active {
+  opacity: 1;
+  border: 2px solid #e10600;
+}
+
+.see-more-btn{
+  display:inline-block;
+  padding:12px 30px;
+  background:#e10600;
+  color:#fff;
+  text-decoration:none;
+  font-family:'Orbitron';
+  font-size:12px;
+  border-radius:4px;
+  transition:0.3s;
+}
+
+.see-more-btn:hover{
+  background:#fff;
+  color:#000;
+}
+
+/* ===== SEE MORE PREMIUM BUTTON ===== */
+
+.see-more-wrap{
+  display:flex;
+  justify-content:center;
+  margin-top:30px;
+}
+
+/* BUTTON */
+/* WRAPPER */
+.see-more-wrap{
+  display:flex;
+  justify-content:center;
+  margin-top:40px;
+}
+
+/* CLEAN PREMIUM BUTTON */
+.see-more-btn{
+  padding:12px 28px;
+  font-family:'Orbitron';
+  font-size:12px;
+  color:#fff;
+  text-decoration:none;
+  border:1px solid #e10600;
+  border-radius:6px;
+  background:transparent;
+  letter-spacing:1px;
+  transition:all 0.25s ease;
+}
+
+/* HOVER (SUBTLE, PREMIUM) */
+.see-more-btn:hover{
+  background:#e10600;
+  box-shadow:0 0 12px rgba(225,6,0,0.4);
+  transform:translateY(-2px);
+}
+
+.feature-strip{
+  display:grid;
+  grid-template-columns:repeat(auto-fit,minmax(200px,1fr));
+  gap:20px;
+  padding:50px 5%;
+  background:#0a0a0a;
+  border-top:1px solid #111;
+  border-bottom:1px solid #111;
+}
+
+.feature{
+  text-align:center;
+  padding:20px;
+  transition:0.3s;
+}
+
+.feature span{
+  font-size:28px;
+  display:block;
+  margin-bottom:10px;
+}
+
+.feature h4{
+  font-size:15px;
+  margin-bottom:5px;
+  color:#fff;
+}
+
+.feature p{
+  font-size:13px;
+  color:#aaa;
+}
+
+/* HOVER EFFECT (SUBTLE) */
+.feature:hover{
+  transform:translateY(-5px);
+  color:#e10600;
+}
+.career-strip{
+  padding:80px 5%;
+  background:linear-gradient(90deg,#0a0a0a,#111);
+  border-top:1px solid #111;
+  border-bottom:1px solid #111;
+  text-align:center;
+}
+
+.career-content{
+  max-width:800px;
+  margin:auto;
+}
+
+.career-strip h2{
+  font-family:'Orbitron';
+  font-size:26px;
+  margin-bottom:15px;
+}
+
+.subtitle{
+  color:#e10600;
+  font-size:14px;
+  margin-bottom:20px;
+}
+
+.desc{
+  color:#aaa;
+  font-size:14px;
+  line-height:1.7;
+  margin-bottom:15px;
+}
+
+.highlight{
+  margin-top:15px;
+  font-weight:bold;
+  color:#fff;
+}
+
+.join-btn{
+  display:inline-block;
+  margin-top:25px;
+  padding:12px 30px;
+  background:#e10600;
+  color:#fff;
+  text-decoration:none;
+  border-radius:6px;
+  font-family:'Orbitron';
+  transition:0.3s;
+}
+
+.join-btn:hover{
+  background:#fff;
+  color:#000;
+  box-shadow:0 0 15px rgba(225,6,0,0.6);
+}
+
+.feature-strip-premium{
+  display:grid;
+  grid-template-columns:repeat(auto-fit,minmax(220px,1fr));
+  gap:25px;
+  padding:60px 5%;
+  background:linear-gradient(90deg,#0a0a0a,#111);
+  border-top:1px solid #111;
+  border-bottom:1px solid #111;
+  align-items:center;
+}
+
+.feature-cta{
+  text-align:center;
+}
+
+.feature-cta h3{
+  margin-bottom:15px;
+  font-family:'Orbitron';
+}
+
+.cta-buttons{
+  display:flex;
+  flex-direction:column;
+  gap:12px;
+  align-items:center;
+}
+
+/*  */
+.hero-strip{
+  position:relative;
+  overflow:hidden;
+  padding:100px 5% 80px;
+  text-align:center;
+  background:linear-gradient(180deg,#000,#0a0a0a);
+  border-top:1px solid #111;
+  border-bottom:1px solid #111;
+}
+
+/* GRID BACKGROUND */
+.hero-strip::before{
+  content:"";
+  position:absolute;
+  inset:0;
+  background-image:
+    linear-gradient(#111 1px, transparent 1px),
+    linear-gradient(90deg, #111 1px, transparent 1px);
+  background-size:40px 40px;
+  opacity:0.25;
+
+  /* 🔥 IMPORTANT FIX */
+  pointer-events:none;
+}
+/* 🔲 GRID BACKGROUND */
+.hero-strip::before{
+  content:"";
+  position:absolute;
+  inset:0;
+  background-image:
+    linear-gradient(#111 1px, transparent 1px),
+    linear-gradient(90deg, #111 1px, transparent 1px);
+  background-size:40px 40px;
+  opacity:0.25;
+}
+
+/* 🔥 RED LIGHT GLOW */
+
+
+.hero-title span{
+  display:inline-block;
+  opacity:0;
+  transform:translateY(20px);
+}
+
+/* stagger animation */
+.hero-title span:nth-child(1){
+  animation:fadeUp 1s ease forwards;
+}
+
+.hero-title span:nth-child(3){
+  animation:fadeUp 1s ease forwards 0.2s;
+}
+.hero-cta{
+  opacity:0;
+  transform:translateY(20px);
+  animation:fadeUp 1s ease forwards 0.6s;
+}
+
+/* smooth entrance */
+@keyframes fadeUp{
+  to{
+    opacity:1;
+    transform:translateY(0);
+  }
+}
+
+.hero-title::after{
+  content:"";
+  position:absolute;
+  inset:0;
+
+  background:linear-gradient(
+    120deg,
+    transparent 20%,
+    rgba(255,255,255,0.15),
+    transparent 80%
+  );
+
+  transform:translateX(-100%);
+  animation:sweep 6s ease-in-out infinite;
+}
+
+@keyframes sweep{
+  0%{ transform:translateX(-100%); }
+  50%{ transform:translateX(100%); }
+  100%{ transform:translateX(100%); }
+}
+
+/* CTA ROW */
+.hero-cta{
+  display:flex;
+  justify-content:center;
+  gap:18px;
+  flex-wrap:wrap;
+}
+
+/* PRIMARY (main action) */
+.btn.primary{
+  background:#fff;
+  color:#000;
+  padding:12px 28px;
+  border-radius:6px;
+  font-family:'Orbitron';
+  font-size:12px;
+  letter-spacing:1px;
+  transition:0.3s;
+}
+
+.btn.primary:hover{
+  background:#e10600;
+  color:#fff;
+}
+
+/* SECONDARY */
+.btn.secondary{
+  border:1px solid #444;
+  color:#ddd;
+  padding:12px 28px;
+  border-radius:6px;
+}
+
+.btn.secondary:hover{
+  border-color:#fff;
+  color:#fff;
+}
+
+/* GHOST */
+.btn.ghost{
+  color:#888;
+  padding:12px 28px;
+}
+
+.btn.ghost:hover{
+  color:#fff;
+}
+
+/* DIVIDER */
+.divider{
+  width:1px;
+  height:35px;
+  background:#333;
+}
+
+/* BUTTONS */
+.btn{
+  padding:12px 28px;
+  font-family:'Orbitron';
+  font-size:12px;
+  border-radius:6px;
+  text-decoration:none;
+  transition:0.3s;
+}
+
+/* PRIMARY */
+.btn.red{
+  background:#e10600;
+  color:#fff;
+  box-shadow:0 0 15px rgba(225,6,0,0.5);
+}
+
+.btn.red:hover{
+  background:#fff;
+  color:#000;
+  box-shadow:0 0 25px rgba(225,6,0,0.8);
+}
+
+/* OUTLINE */
+.btn.outline{
+  border:1px solid #e10600;
+  color:#fff;
+}
+
+.btn.outline:hover{
+  background:#e10600;
+}
+
+
+.hero{
+  background:#000;
+  padding:120px 5%;
+  text-align:center;
+  position:relative;
+  overflow:hidden;
+}
+
+/* 🔲 GRID BACKGROUND */
+.hero::before{
+  content:"";
+  position:absolute;
+  inset:0;
+  background-image:
+    linear-gradient(#111 1px, transparent 1px),
+    linear-gradient(90deg, #111 1px, transparent 1px);
+  background-size:40px 40px;
+  opacity:0.4;
+}
+
+/* 🔥 MAIN LOGO TEXT */
+.logo-text{
+  font-family:'Orbitron';
+  font-size:90px;
+  font-weight:800;
+  letter-spacing:6px;
+  position:relative;
+  z-index:1;
+
+  /* 🔥 METALLIC GRADIENT */
+  background:linear-gradient(
+    90deg,
+    #666,
+    #fff,
+    #999,
+    #fff,
+    #666
+  );
+  background-size:300%;
+
+  -webkit-background-clip:text;
+  -webkit-text-fill-color:transparent;
+
+  animation:shine 6s linear infinite;
+}
+
+/* ✨ SHINE ANIMATION */
+@keyframes shine{
+  0%{ background-position:0% }
+  100%{ background-position:300% }
+}
+
+/* SUB TEXT */
+.tagline{
+  margin-top:15px;
+  font-family:'Orbitron';
+  font-size:22px;
+  letter-spacing:3px;
+  color:#ddd;
+}
+
+/* SMALL TEXT */
+.subline{
+  margin-top:20px;
+  font-size:11px;
+  letter-spacing:3px;
+  color:#666;
+}
+
+.split-action{
+  display:grid;
+  grid-template-columns:1fr auto 1fr;
+  align-items:center;
+  padding:80px 5%;
+  background:#000;
+  position:relative;
+  overflow:hidden;
+}
+
+/* 🔲 GRID BACKGROUND */
+.split-action::before{
+  content:"";
+  position:absolute;
+  inset:0;
+  background-image:
+    linear-gradient(#111 1px, transparent 1px),
+    linear-gradient(90deg, #111 1px, transparent 1px);
+  background-size:40px 40px;
+  opacity:0.2;
+}
+
+/* BOX */
+.split-box{
+  text-align:center;
+  padding:40px;
+  z-index:1;
+  transition:0.4s;
+}
+
+/* TITLE ANIMATION */
+.split-title{
+  font-family:'Orbitron';
+  font-size:24px;
+  margin-bottom:10px;
+
+  background:linear-gradient(90deg,#fff,#e10600,#fff);
+  background-size:200%;
+
+  -webkit-background-clip:text;
+  -webkit-text-fill-color:transparent;
+
+  animation:shine 5s linear infinite;
+}
+
+/* TEXT */
+.split-box p{
+  color:#aaa;
+  margin-bottom:20px;
+}
+
+/* DIVIDER */
+.split-divider{
+  width:1px;
+  height:120px;
+  background:#222;
+}
+
+/* HOVER EFFECT 🔥 */
+.split-box:hover{
+  transform:translateY(-8px);
+}
+
+/* SIDE GLOW */
+.left:hover{
+  box-shadow:-20px 0 60px rgba(225,6,0,0.15);
+}
+
+.right:hover{
+  box-shadow:20px 0 60px rgba(225,6,0,0.15);
+}
+
+/* map footer */
+
+/* 🔥 MAP FINAL CLEAN VERSION */
+.map-box{
+  margin-top:15px;
+  border-radius:10px;
+  overflow:hidden;
+  border:1px solid #111;
+  box-shadow:0 0 20px rgba(0,0,0,0.4);
+  transition:0.3s;
+}
+
+.map-box iframe{
+  width:100%;
+  height:180px; /* desktop */
+  border:0;
+  filter:grayscale(1) contrast(1.1);
+}
+
+/* hover effect */
+.map-box:hover{
+  transform:scale(1.02);
+}
+
+/* 📱 mobile fix */
+@media(max-width:768px){
+  .map-box iframe{
+    height:140px;
+  }
+}
+
+/* MOBILE */
+@media(max-width:768px){
+  .split-action{
+    grid-template-columns:1fr;
+    gap:30px;
+  }
+
+  .split-divider{
+    display:none;
+  }
+}
+
+/* WRAPPER */
+/* SOCIAL ROW */
+.social-row{
+  display:flex;
+  gap:12px;
+  margin-top:15px;
+}
+
+/* BUTTON BASE */
+.social-btn{
+  width:42px;
+  height:42px;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  border-radius:8px;
+  background:#0a0a0a;
+  border:1px solid #222;
+  color:#aaa;
+  font-size:16px;
+  transition:0.25s ease;
+}
+
+/* HOVER */
+.social-btn:hover{
+  transform:translateY(-4px);
+  color:#fff;
+  border-color:#555;
+}
+
+/* BRAND COLORS */
+.social-btn.wa:hover{ background:#25D366; color:#000; }
+.social-btn.ig:hover{ background:#e4405f; }
+.social-btn.fb:hover{ background:#1877f2; }
+.social-btn.ln:hover{ background:#0a66c2; }
+.social-btn.yt:hover{ background:#ff0000; }
+/* MOBILE */
+
+@media(max-width:768px){
+
+header{
+flex-direction:column;
+align-items:flex-start;
+}
+
+nav{
+margin-top:10px;
+}
+
+}
+
+
+.footer-grid{
+  align-items:flex-start;
+}
+
+.contact{
+  display:flex;
+  flex-direction:column;
+  gap:12px;
+}
+
+/* SOCIAL ROW CLEAN ALIGN */
+.social-row{
+  display:flex;
+  gap:10px;
+  flex-wrap:wrap;
+  margin-top:10px;
+}
+
+/* MAP */
+
+
+/* ========================= */
+/* 🔥 FOOTER MOBILE FIX */
+/* ========================= */
+
+@media(max-width:768px){
+
+  footer{
+    padding:40px 20px;
+  }
+
+  .footer-grid{
+    grid-template-columns:1fr;
+    gap:30px;
+  }
+
+  footer h3{
+    font-size:16px;
+    margin-bottom:10px;
+  }
+
+  footer p{
+    font-size:13px;
+    line-height:1.5;
+  }
+
+  footer li{
+    font-size:13px;
+  }
+
+  .contact span{
+    font-size:13px;
+  }
+
+  /* 🔥 BRAND BLOCK FIX */
+  footer div:first-child{
+    text-align:left;
+  }
+
+}
+footer a{
+  color:#aaa;
+  text-decoration:none;
+  transition:0.2s;
+}
+
+footer a:hover{
+  color:#fff;
+}
+
+/* ========================= */
+/* 🔥 ROUTRIX BRAND MOBILE FIX */
+/* ========================= */
+@media(max-width:768px){
+
+  .logo-text{
+    text-align:center;
+  }
+
+  .hero{
+    text-align:center;
+  }
+
+}
+@media(max-width:768px){
+
+  .hero{
+    padding:80px 5%;
+  }
+
+  .logo-text{
+    font-size:38px;
+    letter-spacing:2px;
+    line-height:1.2;
+    word-break:break-word;
+  }
+
+  .tagline{
+    font-size:14px;
+    letter-spacing:1px;
+    line-height:1.4;
+  }
+
+  .subline{
+    font-size:10px;
+    letter-spacing:1px;
+    line-height:1.4;
+    padding:0 10px;
+  }
+
+}
+@media(min-width:1024px){
+
+  .footer-grid{
+    grid-template-columns: repeat(5, 1fr);
+  }
+
+}
+.footer-grid > div{
+  display:flex;
+  flex-direction:column;
+  gap:12px;
+}
+.footer-map-full{
+  margin-top:40px;
+  border-top:1px solid #111;
+  padding-top:20px;
+}
+
+.footer-map-full iframe{
+  width:100%;
+  height:260px; /* 🔥 desktop big map */
+  border:0;
+  border-radius:12px;
+  filter:grayscale(1) contrast(1.1);
+}
+.footer-bottom{
+  margin-top:40px;
+  padding:20px 5%;
+  border-top:1px solid #111;
+  text-align:center;
+  background:#000;
+}
+
+/* COPYRIGHT */
+.footer-bottom .copyright{
+  font-size:12px;
+  color:#777;
+  margin-bottom:6px;
+}
+
+/* CREDIT */
+.footer-bottom .credit{
+  font-size:12px;
+  color:#555;
+  margin-bottom:10px;
+}
+
+.footer-bottom .credit strong{
+  color:#fff;
+}
+
+/* API LINK */
+.footer-bottom .api-link{
+  font-size:11px;
+  color:#666;
+  text-decoration:none;
+  letter-spacing:1px;
+  transition:0.3s;
+}
+
+.footer-bottom .api-link:hover{
+  color:#e10600;
+}
+
+.footer-map-full{
+  position:relative;
+  margin-top:40px;
+}
+
+.footer-map-full iframe{
+  width:100%;
+  height:260px;
+  border:0;
+  border-radius:12px;
+  filter:grayscale(1) contrast(1.1);
+}
+
+/* 🔥 ROUTRIX LABEL */
+.map-overlay{
+  position:absolute;
+  top:15px;
+  left:15px;
+  background:#000;
+  padding:6px 12px;
+  font-size:12px;
+  border-radius:4px;
+  border:1px solid #222;
+  z-index:2;
+  font-family:'Orbitron';
+  letter-spacing:1px;
+}
+
+/* BUTTON */
+.map-btn{
+  display:inline-block;
+  margin-top:12px;
+  font-size:12px;
+  color:#aaa;
+  text-decoration:none;
+  text-align:center;
+  width:100%;
+}
+
+.map-btn:hover{
+  color:#e10600;
+}
+
+</style>
+
+</head>
+
+<body>
+
+<nav class="navbar">
+   
+    <div id="overlay" class="overlay" onclick="closeMenu()"></div>
+
+  <div class="nav-right">
+    <div class="menu-btn" onclick="toggleMenu()">☰</div>
+    <div class="logo" onclick="goHome()">ROUTRIX</div>
+  </div>
+
+  <div class="nav-links" id="navLinks">
+      
+    <div class="close-btn" onclick="toggleMenu()">
+  <span></span>
+  <span></span>
+</div>
+
+    <a href="/" class="active">Home</a>
+    <a href="/tracking">Track Shipment</a>
+    <a href="/booking">Booking</a>
+    <a href="/services">Services</a>
+    <a href="/career">Career</a>
+    <a href="/driver">Driver Portal</a>
+    <a href="/about">About Us</a>
+    <a href="/help">Help</a>
+    <a href="/legal">Legal</a>
+    
+
+  </div>
+
+</nav>
+
+<!-- ADMIN BANNER -->
+
+
+<section id="eventBanner">
+<img id="bannerImg" alt="Banner">
+</section>
+
+
+<!-- SERVICES -->
+
+<section class="hero-strip">
+
+  <h1 class="hero-title">
+  <span>WE TRANSPORT ANYTHING</span><br>
+  <span>ANYWHERE ON TIME</span>
+</h1>
+
+  <div class="hero-cta">
+
+  <a href="/tracking" class="btn primary">Track Now</a>
+
+  <a href="/career" class="btn secondary">Join Us</a>
+
+  <a href="/booking" class="btn ghost">Book Shipment</a>
+
+</div>
+
+</section>
+
+
+
+   <!-- SECTION 01: PACKERS & MOVERS -->
+    <section class="section" id="packers">
+        <div class="category-header"><h2>01. PACKERS & MOVERS</h2><span>/ Premium Shifting</span></div>
+        <p class="section-intro">Our trusted packers manage residential and office relocations with precision, inventory tracking, and careful handling for every move.</p>
+        <div class="viewport">
+            <div class="stage" id="stage-packers"><div class="slider"></div></div>
+        </div>
+        <div class="thumbs-container" id="thumbs-packers"></div>
+    </section>
+
+    <!-- SECTION 02: EVENTS & MEDIA -->
+    <section class="section" id="events">
+        <div class="category-header"><h2>02. EVENTS & MEDIA</h2><span>/ Exhibition Support</span></div>
+        <p class="section-intro">Event logistics and media support designed for exhibitions, shoots, and live production teams who need dependable delivery and setup.</p>
+        <div class="viewport">
+            <div class="stage" id="stage-events"><div class="slider"></div></div>
+        </div>
+        <div class="thumbs-container" id="thumbs-events"></div>
+    </section>
+
+    <!-- SECTION 03: CONSTRUCTION -->
+    <section class="section" id="commercial">
+        <div class="category-header"><h2>03. CONSTRUCTION</h2><span>/ Site Logistics</span></div>
+        <p class="section-intro">Construction logistics for site delivery, materials handling and staged deployment with strict timing and safety controls.</p>
+        <div class="viewport">
+            <div class="stage" id="stage-commercial"><div class="slider"></div></div>
+        </div>
+        <div class="thumbs-container" id="thumbs-commercial"></div>
+    </section>
+
+    <!-- SECTION 04: SAND TRANSPORT -->
+    <section class="section" id="heavy">
+        <div class="category-header"><h2>04. SAND TRANSPORT</h2><span>/ Bulk Materials</span></div>
+        <p class="section-intro">Efficient bulk transport and aggregate handling for construction, landscaping, and industrial supply operations.</p>
+        <div class="viewport">
+            <div class="stage" id="stage-heavy"><div class="slider"></div></div>
+        </div>
+        <div class="thumbs-container" id="thumbs-heavy"></div>
+    </section>
+
+
+
+
+
+
+<section class="services">
+
+<h2>Our Services</h2>
+
+<div class="service-grid">
+
+<div class="service-card">
+<h3>Goods Transport</h3>
+<p>Reliable transport solutions across India.</p>
+</div>
+
+<div class="service-card">
+<h3>Live Tracking</h3>
+<p>Track shipments in real-time.</p>
+</div>
+
+<div class="service-card">
+<h3>Fast Delivery</h3>
+<p>On-time delivery with professional drivers.</p>
+</div>
+
+<div class="service-card">
+<h3>Secure Logistics</h3>
+<p>OTP verification and delivery proof system.</p>
+</div>
+
+</div>
+
+</section>
+
+<style>
+
+
+.feature-strip-premium{
+  display:grid;
+  grid-template-columns:repeat(auto-fit,minmax(200px,1fr));
+  gap:20px;
+  padding:60px 5%;
+  background:linear-gradient(90deg,#0a0a0a,#111);
+  border-top:1px solid #111;
+  border-bottom:1px solid #111;
+  align-items:center;
+}
+
+.feature-item{
+  text-align:center;
+  padding:20px;
+  transition:0.3s;
+}
+
+.feature-item img{
+  width:50px;
+  height:50px;
+  object-fit:contain;
+  margin-bottom:10px;
+}
+
+.feature-item h4{
+  font-size:15px;
+  margin-bottom:5px;
+}
+
+.feature-item p{
+  font-size:13px;
+  color:#aaa;
+}
+
+.feature-item:hover{
+  transform:translateY(-6px);
+}
+
+/* CTA */
+.feature-cta{
+  text-align:center;
+}
+
+.feature-cta h3{
+  margin-bottom:15px;
+  font-family:'Orbitron';
+}
+
+.cta-buttons{
+  display:flex;
+  gap:10px;
+  flex-wrap:wrap;
+  justify-content:center;
+}
+
+.btn{
+  padding:10px 20px;
+  text-decoration:none;
+  font-size:12px;
+  font-family:'Orbitron';
+  border-radius:6px;
+  transition:0.3s;
+}
+
+/* RED PRIMARY */
+.btn.red{
+  background:#e10600;
+  color:#fff;
+}
+
+.btn.red:hover{
+  background:#fff;
+  color:#000;
+}
+
+/* OUTLINE */
+.btn.outline{
+  border:1px solid #e10600;
+  color:#fff;
+}
+
+.btn.outline:hover{
+  background:#e10600;
+}
+
+/* GHOST */
+.btn.ghost{
+  color:#aaa;
+}
+
+.btn.ghost:hover{
+  color:#fff;
+}
+
+</style>
+
+
+<!-- CTA -->
+
+<section class="cta">
+
+<h2>Need Transport Services?</h2>
+
+<a href="/booking">Start Shipment</a>
+
+</section>
+ 
+<section class="hero">
+
+  <h1 class="logo-text">ROUTRIX</h1>
+
+  <h2 class="tagline">
+    GOODS TRANSPORT & LOGISTICS SERVICES
+  </h2>
+
+  <p class="subline">
+    ESTABLISHED ON 12/05/2025 | HEADQUARTERED IN ROHINI, NEW DELHI
+  </p>
+
+</section>
+
+<!-- FOOTER -->
+
+<footer>
+
+<div class="footer-grid">
+
+<div>
+
+<h3>ROUTRIX</h3>
+
+<p><strong>Goods Transport & Logistics Services</strong></p>
+
+<p>
+Registered Office:<br>
+Flat No. 127, 2nd Floor, Pkt-A2,<br>
+Sector-17, Rohini,<br>
+New Delhi – 110089
+</p>
+
+</div>
+
+<div>
+
+<h3>QUICK LINKS</h3>
+
+<ul>
+
+<li><a href="/">Home</a></li>
+<li><a href="/tracking">Track Shipment</a></li>
+<li><a href="/booking">Book Shipment</a></li>
+<li><a href="/services">Services</a></li>
+<li><a href="/career">Careers</a></li>
+<li><a href="/help">Help</a></li>
+
+
+
+</ul>
+
+<div> <h3>LEGAL</h3>
+<ul>
+<li><a href="/legal#terms">Terms & Conditions</a></li>
+<li><a href="/legal#privacy">Privacy Policy</a></li>
+</ul></div>
+
+</div>
+
+<div>
+
+  <h3>CONTACT</h3>
+
+  <div class="contact">
+
+    <span>+91 88262 82253</span>
+    <span>routrix.info@gmail.com</span>
+    <span>routrix.in@gmail.com</span>
+
+    <!-- SOCIAL ICONS -->
+    <div class="social-row">
+      <a href="https://wa.me/918826282253" target="_blank" rel="noopener" class="social-btn wa">
+        <i class="fa-brands fa-whatsapp"></i>
+      </a>
+
+      <a href="https://www.instagram.com/routrix.in/" class="social-btn ig">
+        <i class="fa-brands fa-instagram"></i>
+      </a>
+
+      <a href="https://www.facebook.com/Routrix/" class="social-btn fb">
+        <i class="fa-brands fa-facebook-f"></i>
+      </a>
+
+      <a href="https://www.linkedin.com/posts/routrixforyou-routrixabrsameabrdayabrdelivery-share-7444410791253925889-_RVe?utm_source=share&utm_medium=member_desktop&rcm=ACoAAEwIjdcBcYOZ9Ojku3ZVnuY616zmk24RXBE" class="social-btn ln">
+        <i class="fa-brands fa-linkedin-in"></i>
+      </a>
+
+      <a href="https://www.youtube.com/@ROUTRIX_SURAJ" class="social-btn yt">
+        <i class="fa-brands fa-youtube"></i>
+      </a>
+    </div>
+
+    <!-- MAP -->
+   
+
+  </div>
+
+</div>   <!-- ✅ THIS WAS MISSING (CONTACT COLUMN CLOSED) -->
+
+
+<!-- BUSINESS COLUMN -->
+<div>
+
+  <h3>BUSINESS DETAILS</h3>
+
+  <p>GST NO: 07CXXXXXXXXJ1Z1</p>
+  <p>MSME NO: UDYAM-DL-04-006XXXX</p>
+
+  <br>
+
+</div>
+
+<div>
+
+  <h3>CORE SERVICES</h3>
+
+  <ul>
+    <li>Pan India Transportation</li>
+    <li>Vehicle & Goods Transportation</li>
+    <li>Packers & Movers</li>
+    <li>Heavy Machinery & Trailer Transport</li>
+    <li>Packing Solutions</li>
+    <li>Construction Material Movement</li>
+    <li>Loading & Unloading with Labour</li>
+    <li>Per Kg / Unit Based Shifting</li>
+    <li>Office & Site-to-Site Movement</li>
+    <li>Short & Long-Term Contracts</li>
+  </ul>
+
+</div>
+
+</div>
+
+</div>
+
+</footer>
+
+</div> <!-- footer-grid ends -->
+
+<!-- 🔥 FULL WIDTH MAP -->
+<div class="footer-map-full">
+
+  <!-- 🔥 BRAND OVERLAY -->
+  <div class="map-overlay">ROUTRIX HQ</div>
+
+  <iframe 
+    src="https://www.google.com/maps?q=28.73895734554861,77.11729655667871&z=17&output=embed"
+    loading="lazy"
+    title="Routrix Location">
+  </iframe>
+
+</div>
+
+<!-- 🔗 REAL GOOGLE LINK -->
+<a href="https://www.google.com/maps/place/ROUTRIX/@28.7389514,77.1147175,894m/data=!3m2!1e3!4b1!4m6!3m5!1s0x390d010f7bf40e2b:0xbb0efe8d1f0620f9!8m2!3d28.7389514!4d77.1172924!16s%2Fg%2F11ykg2v8j6?hl=en-GB&authuser=3&entry=ttu&g_ep=EgoyMDI2MDQyMC4wIKXMDSoASAFQAw%3D%3D" 
+   target="_blank" 
+   rel="noopener"
+   class="map-btn">
+   View on Google Maps
+</a>
+<!-- 🔥 FINAL FOOTER STRIP -->
+<div class="footer-bottom">
+
+  <p class="copyright">
+    © 2026 ROUTRIX. All Rights Reserved
+  </p>
+
+  <p class="credit">
+    Made with ❤️ by <strong>Suraj Jha</strong> — Founder
+  </p>
+
+  <a href="/about" class="api-link">
+    About Routrix 
+  </a>
+
+</div>
+
+<!-- 🔥 REPLACE ONLY YOUR <script> BOTTOM PART WITH THIS -->
+
+<script src="/static/js/api-config.js"></script>
+<script>
+
+const bannerBox = document.getElementById("eventBanner")
+const bannerImg = document.getElementById("bannerImg")
+
+let banners = []
+let current = 0
+
+fetch(API_BASE_URL + "/banners")
+.then(r => r.json())
+.then(data => {
+  banners = data.banners || []
+  if(banners.length > 0){
+    showBanner()
+    setInterval(nextBanner, 4000)
+  }
+})
+
+function showBanner(){
+  bannerImg.style.opacity = 0
+  setTimeout(()=>{
+    const banner = banners[current]
+    // Use the secure_url from Cloudinary with cache-busting
+    const bannerUrl = banner.url + "?t=" + Date.now()
+    bannerImg.src = bannerUrl
+    bannerImg.style.opacity = 1
+  },200)
+  bannerBox.style.display = "block"
+}
+
+function nextBanner(){
+  current = (current + 1) % banners.length
+  showBanner()
+}
+
+function toggleMenu(){
+  document.getElementById("navLinks").classList.toggle("active")
+  document.getElementById("overlay").classList.toggle("active")
+}
+
+function closeMenu(){
+  document.getElementById("navLinks").classList.remove("active")
+  document.getElementById("overlay").classList.remove("active")
+}
+
+document.querySelectorAll("#navLinks a").forEach(link=>{
+  link.addEventListener("click", closeMenu)
+})
+
+function goHome(){
+  window.location.href = "/"
+}
+
+// ✅ FIXED LINKS ERROR
+const links = document.querySelectorAll("#navLinks a");
+
+links.forEach(link => {
+  link.addEventListener("click", function () {
+    links.forEach(l => l.classList.remove("active"));
+    this.classList.add("active");
+  });
+});
+
+// 🔥 FULL WORKING SERVICES DATA
+const DATA = {
+  packers: [
+    { src: '/assets/packers1.png', title: 'Packing', desc: 'Safe transport' },
+    { src: '/assets/packers2.png', title: 'Home Shift', desc: 'Relocation service' }
+  ],
+  events: [
+    { src: '/assets/event_exhbition.png', title: 'Exhibition', desc: 'Event logistics' },
+    { src: '/assets/event_shooting2.png', title: 'Media Shoot', desc: 'Production transport' }
+  ],
+  commercial: [
+    { src: '/assets/construct1.png', title: 'Construction', desc: 'Site delivery' },
+    { src: '/assets/construct2.png', title: 'Material Supply', desc: 'Heavy goods' }
+  ],
+  heavy: [
+    { src: '/assets/sandtransportion.png', title: 'Sand Transport', desc: 'Bulk material' },
+    { src: '/assets/trailerheavy.png', title: 'Trailer', desc: 'Heavy logistics' }
+  ],
+  ops: [
+    { src: '/assets/loading1.png', title: 'Loading', desc: 'Warehouse handling' },
+    { src: '/assets/machineunload.png', title: 'Machine Unload', desc: 'Heavy unloading' }
+  ]
+};
+
+function render(){
+
+  Object.keys(DATA).forEach(section => {
+
+    const stage = document.querySelector(`#stage-${section} .slider`);
+    const thumbBox = document.getElementById(`thumbs-${section}`);
+
+    if(!stage) return;
+
+    let index = 0;
+
+    DATA[section].forEach((item, i)=>{
+
+      // 🔹 CREATE SLIDE
+      const slide = document.createElement("div");
+      slide.className = "slide";
+
+      slide.innerHTML = `
+        <img src="${item.src}">
+        <div class="overlay">
+          <h3>${item.title}</h3>
+          <p>${item.desc}</p>
+        </div>
+      `;
+
+      stage.appendChild(slide);
+
+      // 🔹 CREATE THUMB
+      if(thumbBox){
+        const thumb = document.createElement("div");
+        thumb.className = "thumb";
+
+        thumb.innerHTML = `<img src="${item.src}">`;
+
+        thumb.onclick = () => {
+          stage.style.transform = `translateX(-${i * 100}%)`;
+
+          thumbBox.querySelectorAll(".thumb").forEach(t => t.classList.remove("active"));
+          thumb.classList.add("active");
+        };
+
+        if(i === 0) thumb.classList.add("active");
+
+        thumbBox.appendChild(thumb);
+      }
+
+    });
+
+    // 🔥 AUTO SLIDE + SYNC
+    setInterval(()=>{
+      index = (index + 1) % DATA[section].length;
+      stage.style.transform = `translateX(-${index * 100}%)`;
+
+      const thumbs = thumbBox.querySelectorAll(".thumb");
+      thumbs.forEach(t => t.classList.remove("active"));
+      if(thumbs[index]) thumbs[index].classList.add("active");
+
+    },3000);
+
+  });
+
+}
+
+// ✅ DO NOT USE window.onload (it breaks existing code)
+window.addEventListener("load", () => {
+  render();
+});
+
+</script>
+</body>
+</html>
+

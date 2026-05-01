@@ -1,0 +1,13 @@
+fastapi
+uvicorn
+python-multipart
+passlib
+bcrypt
+apscheduler
+pillow
+python-dotenv
+PyJWT==2.8.0
+SQLAlchemy>=2.0
+psycopg2-binary
+boto3
+cloudinary
