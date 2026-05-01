@@ -235,7 +235,7 @@ def save_banner_file(file: UploadFile):
         
         # Upload to Cloudinary with automatic optimizations
         upload_response = cloudinary.uploader.upload(
-            contents,
+            file.file,
             public_id=public_id_base,
             folder="routrix_banners",
             overwrite=False,
