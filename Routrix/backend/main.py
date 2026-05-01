@@ -211,11 +211,6 @@ def save_banner_file(file: UploadFile):
             detail="Only JPG, JPEG, and PNG images are supported"
         )
     
-    # Read file contents
-    contents = file.file.read() if hasattr(file.file, "read") else None
-    if contents is None:
-        raise HTTPException(status_code=400, detail="Invalid banner file")
-    
     # Check Cloudinary configuration
     if not (CLOUDINARY_CLOUD_NAME and CLOUDINARY_API_KEY and CLOUDINARY_API_SECRET):
         raise HTTPException(
@@ -224,13 +219,24 @@ def save_banner_file(file: UploadFile):
         )
     
     try:
-        # Upload to Cloudinary with automatic optimizations
-        # Store in 'routrix_banners' folder with timestamp for versioning
-        public_id = f"routrix_banners/banner_{int(time.time())}"
+        # Read file contents with proper error handling
+        if not hasattr(file.file, "read"):
+            raise HTTPException(status_code=400, detail="Invalid banner file")
         
+        contents = file.file.read()
+        if not contents:
+            raise HTTPException(status_code=400, detail="Banner file is empty")
+        
+        # Reset file pointer for potential re-reads
+        file.file.seek(0)
+        
+        # Generate unique public_id with timestamp
+        public_id_base = f"routrix_banners/banner_{int(time.time())}"
+        
+        # Upload to Cloudinary with automatic optimizations
         upload_response = cloudinary.uploader.upload(
             contents,
-            public_id=public_id,
+            public_id=public_id_base,
             folder="routrix_banners",
             overwrite=False,
             resource_type="image",
@@ -247,6 +253,8 @@ def save_banner_file(file: UploadFile):
         logger.info(f"[BANNER] Uploaded to Cloudinary: {public_id} -> {secure_url}")
         return public_id, secure_url
         
+    except HTTPException:
+        raise
     except CloudinaryError as e:
         logger.error(f"[BANNER ERROR] Cloudinary upload failed: {str(e)}")
         raise HTTPException(
@@ -440,14 +448,29 @@ def driver_login(data: dict):
 # =============================
 @app.post("/admin/upload-banner")
 async def upload_banner(file: UploadFile = File(...), admin=Depends(verify_admin)):
+    public_id = None
     try:
         public_id, secure_url = save_banner_file(file)
 
         with SessionLocal() as db:
-            # Store public_id as filename and secure_url from Cloudinary
-            banner = Banner(filename=public_id, storage_url=secure_url)
-            db.add(banner)
-            db.commit()
+            try:
+                # Store public_id as filename and secure_url from Cloudinary
+                banner = Banner(filename=public_id, storage_url=secure_url)
+                db.add(banner)
+                db.commit()
+            except Exception as db_error:
+                db.rollback()
+                # Rollback: Delete from Cloudinary if DB save failed
+                if public_id:
+                    try:
+                        cloudinary.uploader.destroy(public_id)
+                        logger.warning(f"[BANNER] Rolled back Cloudinary upload due to DB error: {public_id}")
+                    except Exception as delete_error:
+                        logger.error(f"[BANNER ERROR] Failed to rollback Cloudinary deletion: {str(delete_error)}")
+                raise HTTPException(
+                    status_code=500, 
+                    detail=f"Failed to save banner to database: {str(db_error)}"
+                )
         
         logger.info(f"[BANNER OK] Banner uploaded: {public_id} -> {secure_url}")
         return {
@@ -499,37 +522,51 @@ def get_banners(response: Response):
 @app.delete("/admin/delete-banner/{filename}")
 def delete_banner(filename: str, admin=Depends(verify_admin)):
     """
-    Delete banner from both Cloudinary and database.
+    Delete banner from both Cloudinary and database atomically.
     filename parameter is the Cloudinary public_id.
     """
     try:
-        # First, delete from database
-        with SessionLocal() as db:
-            banner = db.query(Banner).filter(Banner.filename == filename).first()
-            if not banner:
-                raise HTTPException(
-                    status_code=404,
-                    detail=f"Banner {filename} not found in database"
-                )
-            
-            db.delete(banner)
-            db.commit()
-            logger.info(f"[BANNER OK] Removed from database: {filename}")
-
-        # Then, delete from Cloudinary using public_id
+        # First, delete from Cloudinary to ensure file is gone
+        cloudinary_deleted = False
         if CLOUDINARY_CLOUD_NAME and CLOUDINARY_API_KEY and CLOUDINARY_API_SECRET:
             try:
                 result = cloudinary.uploader.destroy(filename)
                 if result.get("result") == "ok":
+                    cloudinary_deleted = True
                     logger.info(f"[BANNER OK] Deleted from Cloudinary: {filename}")
                 else:
                     logger.warning(f"[BANNER WARN] Cloudinary deletion response: {result}")
+                    cloudinary_deleted = True  # Treat as success even if "not found"
             except CloudinaryError as e:
                 logger.error(f"[BANNER ERROR] Cloudinary deletion failed: {str(e)}")
                 raise HTTPException(
                     status_code=500,
                     detail=f"Could not delete banner from Cloudinary: {str(e)}"
                 )
+        
+        # Then, delete from database only if Cloudinary deletion succeeded
+        with SessionLocal() as db:
+            try:
+                banner = db.query(Banner).filter(Banner.filename == filename).first()
+                if not banner:
+                    raise HTTPException(
+                        status_code=404,
+                        detail=f"Banner {filename} not found in database"
+                    )
+                
+                db.delete(banner)
+                db.commit()
+                logger.info(f"[BANNER OK] Removed from database: {filename}")
+            except HTTPException:
+                raise
+            except Exception as db_error:
+                db.rollback()
+                logger.error(f"[BANNER ERROR] Database deletion failed: {str(db_error)}")
+                raise HTTPException(
+                    status_code=500,
+                    detail=f"Could not delete banner from database: {str(db_error)}"
+                )
+        
         
         return {
             "success": True,
