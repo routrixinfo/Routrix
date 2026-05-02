@@ -1,20 +1,32 @@
 {
-  "name": "ROUTRIX ",
+  "name": "ROUTRIX Logistics",
   "short_name": "ROUTRIX",
-  "start_url": "/driver.html",
+  "start_url": "/",
+  "scope": "/",
   "display": "standalone",
   "background_color": "#000000",
-  "theme_color": "#000000",
+  "theme_color": "#e10600",
+  "orientation": "portrait-primary",
   "icons": [
     {
       "src": "/assets/routrixlogo.png",
       "sizes": "192x192",
-      "type": "image/png"
+      "type": "image/png",
+      "purpose": "any"
     },
     {
       "src": "/assets/routrixlogo.png",
       "sizes": "512x512",
-      "type": "image/png"
+      "type": "image/png",
+      "purpose": "any"
+    }
+  ],
+  "screenshots": [
+    {
+      "src": "/assets/routrixlogo.png",
+      "type": "image/png",
+      "sizes": "540x720",
+      "form_factor": "narrow"
     }
   ]
 }

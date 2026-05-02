@@ -21,53 +21,11 @@
 <script src="/static/js/api-config.js"></script>
 
 <script>
+
+let map;
+let markers = [];
+
 // JWT Token Validation on Page Load
-document.addEventListener('DOMContentLoaded', function() {
-  const token = localStorage.getItem('adminToken');
-  
-  if (!token) {
-    showLoginForm();
-    return;
-  }
-  
-  try {
-    // Decode JWT payload (without verification - just checking expiry)
-    const payload = JSON.parse(atob(token.split('.')[1]));
-    const expiryTime = payload.exp * 1000;
-    const now = Date.now();
-    
-    if (now >= expiryTime) {
-      console.warn('Token expired');
-      localStorage.removeItem('adminToken');
-      showLoginForm();
-      return;
-    }
-    
-    // Token is valid
-    showAdminPanel();
-  } catch (e) {
-    console.error('Invalid token:', e);
-    localStorage.removeItem('adminToken');
-    showLoginForm();
-  }
-});
-
-function showLoginForm() {
-  const loginCard = document.getElementById('loginCard');
-  const adminPanel = document.getElementById('adminPanel');
-  if (loginCard) loginCard.style.display = 'block';
-  if (adminPanel) adminPanel.style.display = 'none';
-}
-
-function showAdminPanel() {
-  const loginCard = document.getElementById('loginCard');
-  const adminPanel = document.getElementById('adminPanel');
-  if (loginCard) loginCard.style.display = 'none';
-  if (adminPanel) adminPanel.style.display = 'block';
-}
-</script>
-
-<style>
 body{
 background:#111;
 color:white;
@@ -211,10 +169,58 @@ display:none;
 
 <script>
 
-const BACKEND = API_BASE_URL;
+// JWT Token Validation on Page Load
+document.addEventListener('DOMContentLoaded', function() {
+  const token = localStorage.getItem('admin_token');
+  
+  if (!token) {
+    showLoginForm();
+    return;
+  }
+  
+  try {
+    const payload = JSON.parse(atob(token.split('.')[1]));
+    const expiryTime = payload.exp * 1000;
+    const now = Date.now();
+    
+    if (now >= expiryTime) {
+      console.warn('Token expired');
+      localStorage.removeItem('admin_token');
+      showLoginForm();
+      return;
+    }
+    
+    showAdminPanel();
+    
+    // Initialize map and load trips
+    setTimeout(function() {
+      try {
+        initMap();
+        loadTrips();
+      } catch (e) {
+        console.error('Error initializing admin panel:', e);
+      }
+    }, 100);
+  } catch (e) {
+    console.error('Invalid token:', e);
+    localStorage.removeItem('admin_token');
+    showLoginForm();
+  }
+});
 
-let map
-let markers=[]
+function showLoginForm() {
+  const loginCard = document.getElementById('loginCard');
+  const adminPanel = document.getElementById('adminPanel');
+  if (loginCard) loginCard.style.display = 'block';
+  if (adminPanel) adminPanel.classList.add('hidden');
+}
+
+function showAdminPanel() {
+  const loginCard = document.getElementById('loginCard');
+  const adminPanel = document.getElementById('adminPanel');
+  if (loginCard) loginCard.style.display = 'none';
+  if (adminPanel) adminPanel.classList.remove('hidden');
+}
 
 function login(){
 
@@ -236,20 +242,26 @@ if(data.access_token){
 
 localStorage.setItem("admin_token",data.access_token)
 
-document.getElementById("loginCard").style.display="none"
+showAdminPanel()
 
-document.getElementById("adminPanel").classList.remove("hidden")
-
-initMap()
-loadTrips()
+setTimeout(function() {
+  try {
+    initMap();
+    loadTrips();
+  } catch (e) {
+    console.error('Error:', e);
+  }
+}, 100);
 
 }else{
 
-document.getElementById("loginStatus").innerHTML="Login Failed"
+document.getElementById("loginStatus").innerHTML="❌ Login Failed - Invalid Password"
 
 }
 
 })
+
+}
 
 }
 
@@ -492,23 +504,6 @@ data.banners.forEach(file => {
 function logout(){
   localStorage.removeItem("admin_token")
   window.location.href = "/"
-}
-window.onload = function(){
-
-  const token = localStorage.getItem("admin_token")
-
-  if(token){
-    document.getElementById("loginCard").style.display="none"
-    document.getElementById("adminPanel").classList.remove("hidden")
-    initMap()
-
-    // 🔥 ADD THIS LINE
-    loadTrips();
-
-  }else{
-    document.getElementById("loginCard").style.display="block"
-  }
-
 }
 // DELETE BANNER
 
