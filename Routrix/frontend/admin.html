@@ -18,7 +18,54 @@
 <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"/>
 
 <!-- API Configuration -->
-<script src="static/js/api-config.js"></script>
+<script src="/static/js/api-config.js"></script>
+
+<script>
+// JWT Token Validation on Page Load
+document.addEventListener('DOMContentLoaded', function() {
+  const token = localStorage.getItem('adminToken');
+  
+  if (!token) {
+    showLoginForm();
+    return;
+  }
+  
+  try {
+    // Decode JWT payload (without verification - just checking expiry)
+    const payload = JSON.parse(atob(token.split('.')[1]));
+    const expiryTime = payload.exp * 1000;
+    const now = Date.now();
+    
+    if (now >= expiryTime) {
+      console.warn('Token expired');
+      localStorage.removeItem('adminToken');
+      showLoginForm();
+      return;
+    }
+    
+    // Token is valid
+    showAdminPanel();
+  } catch (e) {
+    console.error('Invalid token:', e);
+    localStorage.removeItem('adminToken');
+    showLoginForm();
+  }
+});
+
+function showLoginForm() {
+  const loginCard = document.getElementById('loginCard');
+  const adminPanel = document.getElementById('adminPanel');
+  if (loginCard) loginCard.style.display = 'block';
+  if (adminPanel) adminPanel.style.display = 'none';
+}
+
+function showAdminPanel() {
+  const loginCard = document.getElementById('loginCard');
+  const adminPanel = document.getElementById('adminPanel');
+  if (loginCard) loginCard.style.display = 'none';
+  if (adminPanel) adminPanel.style.display = 'block';
+}
+</script>
 
 <style>
 body{

@@ -195,7 +195,7 @@ footer a:hover{color:#fff}
 </section>
 
   <!-- FORM 1 -->
-  <form id="f1" onsubmit="buildDriverSubject()" action="https://routrix.onrender.com/career" method="POST" enctype="multipart/form-data">
+  <form id="f1" onsubmit="handleCareerSubmit(event)" method="POST" enctype="multipart/form-data">
     <h2 style="font-family:Orbitron,sans-serif;color:#fff;margin-bottom:10px">🚚 Drive / Partner with Routrix</h2>
     <p class="subtitle" data-en="New driver job request. Submit your details and documents for onboarding." data-hi="नया ड्राइवर जॉब रिक्वेस्ट। ऑनबोर्डिंग के लिए अपनी जानकारी और दस्तावेज़ भेजें।">New driver job request. Submit your details and documents for onboarding.</p>
     <input type="hidden" name="_captcha" value="false">
@@ -246,7 +246,7 @@ footer a:hover{color:#fff}
   </form>
 
   <!-- FORM 2 -->
-  <form id="f2" onsubmit="buildLabourSubject()" action="https://routrix.onrender.com/career" method="POST" enctype="multipart/form-data">
+  <form id="f2" onsubmit="handleCareerSubmit(event)" method="POST" enctype="multipart/form-data">
     <h2 style="font-family:Orbitron,sans-serif;color:#fff;margin-bottom:10px">👷 Labour / Manpower Support</h2>
     <p class="subtitle" data-en="New manpower request. Share your availability and experience for labour jobs." data-hi="नई मैनपावर रिक्वेस्ट। लेबर जॉब्स के लिए अपनी उपलब्धता और अनुभव साझा करें।">New manpower request. Share your availability and experience for labour jobs.</p>
     <input type="hidden" name="_captcha" value="false">
@@ -278,7 +278,7 @@ footer a:hover{color:#fff}
   </form>
 
   <!-- FORM 3 -->
-  <form id="f3" onsubmit="buildOpsSubject()" action="https://routrix.onrender.com/career" method="POST" enctype="multipart/form-data">
+  <form id="f3" onsubmit="handleCareerSubmit(event)" method="POST" enctype="multipart/form-data">
     <h2 style="font-family:Orbitron,sans-serif;color:#fff;margin-bottom:10px">🧭 Supervisor / Operator</h2>
     <p class="subtitle" data-en="New supervisor request. Apply for operations and dispatch leadership roles." data-hi="नई सुपरवाइज़र रिक्वेस्ट। ऑपरेशन्स और डिस्पैच लीडरशिप रोल के लिए आवेदन करें।">New supervisor request. Apply for operations and dispatch leadership roles.</p>
     <input type="hidden" name="_captcha" value="false">
@@ -640,7 +640,33 @@ function switchLang(lang){
 }
 
 </script>
-<script src="static/js/api-config.js"></script></body>
+<script src="/static/js/api-config.js"></script>
+<script>
+async function handleCareerSubmit(e) {
+  e.preventDefault();
+  const form = e.target;
+  const formData = new FormData(form);
+  
+  try {
+    const response = await fetch(`${BACKEND}/career`, {
+      method: 'POST',
+      body: formData
+    });
+    const result = await response.json();
+    
+    if (result.success) {
+      alert('Thank you! Your application has been submitted.');
+      form.reset();
+    } else {
+      alert('Error: ' + (result.error || 'Failed to submit'));
+    }
+  } catch (error) {
+    console.error('Error:', error);
+    alert('Error submitting form');
+  }
+}
+</script>
+</body>
 </html>
 
 

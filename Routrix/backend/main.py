@@ -30,6 +30,7 @@ import cloudinary
 import cloudinary.uploader
 import cloudinary.api
 from cloudinary.exceptions import Error as CloudinaryError
+from apscheduler.schedulers.background import BackgroundScheduler
 
 # =============================
 # LOGGING SETUP
@@ -309,6 +310,35 @@ def startup_event():
     print(f"✓ Frontend URL: {FRONTEND_URL or '(not set)'}")
     print(f"✓ Environment: {os.getenv('ENVIRONMENT', 'development')}")
     print("="*60 + "\n")
+    
+    # Start background scheduler for OTP cleanup
+    start_cleanup_scheduler()
+
+
+def cleanup_expired_otps():
+    """Delete expired OTP records every 5 minutes"""
+    with SessionLocal() as db:
+        try:
+            expired_count = db.query(OTPRecord).filter(
+                OTPRecord.expires < datetime.utcnow()
+            ).delete()
+            db.commit()
+            if expired_count > 0:
+                logger.info(f"[CLEANUP] Deleted {expired_count} expired OTP records")
+        except Exception as e:
+            logger.error(f"[CLEANUP ERROR] Failed to cleanup OTPs: {e}")
+            db.rollback()
+
+
+def start_cleanup_scheduler():
+    """Start background scheduler for database cleanup"""
+    try:
+        scheduler = BackgroundScheduler()
+        scheduler.add_job(cleanup_expired_otps, 'interval', minutes=5, id='otp_cleanup')
+        scheduler.start()
+        logger.info("[SCHEDULER] Background OTP cleanup scheduler started")
+    except Exception as e:
+        logger.error(f"[SCHEDULER ERROR] Failed to start scheduler: {e}")
 
 
 @app.middleware("http")
