@@ -1,7 +1,11 @@
+const API = "https://routrix.onrender.com";
+
 const api = {
-  getOrders: () => fetch("/api/orders").then((r) => r.json()),
+  getOrders: () =>
+    fetch(`${API}/api/orders`).then((r) => r.json()),
+
   createOrder: (payload) =>
-    fetch("/api/orders", {
+    fetch(`${API}/api/orders`, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify(payload),
