@@ -6,27 +6,16 @@
  * Example: <script src="static/js/api-config.js"></script>
  */
 
-// ===== API CONFIGURATION =====
-const API_BASE_URL = (() => {
-  // Production domains (Vercel, Custom Domain)
-  if (window.location.hostname === "routrix.in" || 
-      window.location.hostname === "www.routrix.in" ||
-      window.location.hostname === "routrix.vercel.app") {
-    return "https://routrix.onrender.com";
-  }
-  
-  // Development (localhost)
-  if (window.location.hostname === "localhost" || 
-      window.location.hostname === "127.0.0.1") {
-    return "http://localhost:8000";
-  }
-  
-  // Fallback
-  return "https://routrix.onrender.com";
-})();
+// ===== API CONFIGURATION =====;
 
-console.log("[API] Using backend URL:", API_BASE_URL);
+// ===== ROUTRIX FINAL API CONFIG (STABLE) =====
+
+const API_BASE_URL = "https://routrix.onrender.com";
 const BACKEND = API_BASE_URL;
+
+console.log("[API] Using backend URL:", BACKEND);
+
+
 
 // ===== HELPER: Make API Calls =====
 async function fetchAPI(endpoint, options = {}) {
@@ -202,3 +191,4 @@ if (typeof module !== 'undefined' && module.exports) {
     handleAPIError
   };
 }
+
