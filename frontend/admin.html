@@ -17,6 +17,9 @@
 
 <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"/>
 
+<!-- API Configuration -->
+<script src="/static/js/api-config.js"></script>
+
 <style>
 body{
 background:#111;
@@ -136,7 +139,7 @@ display:none;
 
 <h3>Upload Homepage Banner</h3>
 
-<input type="file" id="bannerFile" accept=".jpg">
+<input type="file" id="bannerFile" accept=".jpg,.jpeg,.png">
 
 <button onclick="uploadBanner()">Upload Banner</button>
 
@@ -161,7 +164,8 @@ display:none;
 
 <script>
 
-const BACKEND="https://routrix.onrender.com"
+const BACKEND = window.API_BASE_URL || "https://routrix.onrender.com";
+console.log("BACKEND URL:", BACKEND);
 
 let map
 let markers=[]
@@ -169,6 +173,13 @@ let markers=[]
 function login(){
 
 const password=document.getElementById("adminPassword").value
+
+if(!password){
+  document.getElementById("loginStatus").innerHTML="❌ Enter password"
+  return
+}
+
+console.log("Logging in with BACKEND:", BACKEND)
 
 fetch(`${BACKEND}/admin/login`,{
 method:"POST",
@@ -179,8 +190,13 @@ body:JSON.stringify({
 password:password
 })
 })
-.then(r=>r.json())
+.then(r=>{
+  console.log("Login response status:", r.status)
+  return r.json()
+})
 .then(data=>{
+
+console.log("Login response:", data)
 
 if(data.access_token){
 
@@ -190,15 +206,25 @@ document.getElementById("loginCard").style.display="none"
 
 document.getElementById("adminPanel").classList.remove("hidden")
 
-initMap()
-loadTrips()
+setTimeout(function(){
+  try {
+    initMap()
+    loadTrips()
+  } catch(e) {
+    console.error("Error loading map/trips:", e)
+  }
+}, 100)
 
 }else{
 
-document.getElementById("loginStatus").innerHTML="Login Failed"
+document.getElementById("loginStatus").innerHTML="❌ Login Failed: " + (data.detail || data.error || "Invalid password")
 
 }
 
+})
+.catch(err => {
+  console.error("Login error:", err)
+  document.getElementById("loginStatus").innerHTML="❌ Connection Error: " + err.message
 })
 
 }
@@ -320,6 +346,7 @@ headers:{
 .then(r=>r.json())
 .then(data=>{
 
+const otpBox = document.getElementById("otpBox");
 otpBox.innerHTML = `
 <div style="font-size:16px; margin-top:10px;">
   <strong>Generated OTP:</strong> <span style="color:#00ffcc;">${data.otp}</span>
@@ -425,7 +452,7 @@ return
 
 data.banners.forEach(file => {
   const filename = file.filename || file.url.split('/').pop()
-  const imageUrl = file.url || `${BACKEND}/banners/${filename}`
+  const imageUrl = file.url + "?t=" + Date.now()  // Add cache-busting to Cloudinary URLs
   const div = document.createElement("div")
 
   div.innerHTML = `
@@ -443,23 +470,49 @@ function logout(){
   localStorage.removeItem("admin_token")
   window.location.href = "/"
 }
+
 window.onload = function(){
 
   const token = localStorage.getItem("admin_token")
 
-  if(token){
-    document.getElementById("loginCard").style.display="none"
-    document.getElementById("adminPanel").classList.remove("hidden")
-    initMap()
-
-    // 🔥 ADD THIS LINE
-    loadTrips();
-
-  }else{
-    document.getElementById("loginCard").style.display="block"
+  if(!token){
+    document.getElementById("loginCard").style.display = "block"
+    return
   }
 
+  // ✅ VERIFY TOKEN WITH BACKEND
+  fetch(BACKEND + "/admin/active-trips", {
+    headers:{
+      "Authorization":"Bearer " + token
+    }
+  })
+  .then(res => {
+
+    if(res.status !== 200){
+      // ❌ INVALID TOKEN → LOGOUT
+      localStorage.removeItem("admin_token")
+      document.getElementById("loginCard").style.display = "block"
+      return
+    }
+
+    // ✅ VALID TOKEN → SHOW ADMIN
+    document.getElementById("loginCard").style.display = "none"
+    document.getElementById("adminPanel").classList.remove("hidden")
+
+    initMap()
+    loadTrips()
+
+  })
+  .catch(err => {
+    console.error("Auth check failed:", err)
+
+    localStorage.removeItem("admin_token")
+    document.getElementById("loginCard").style.display = "block"
+  })
+
 }
+
+
 // DELETE BANNER
 
 function deleteBanner(filename){
