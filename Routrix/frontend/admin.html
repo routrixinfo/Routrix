@@ -18,7 +18,7 @@
 <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"/>
 
 <!-- API Configuration -->
-<script src="static/js/api-config.js"></script>
+<script src="/static/js/api-config.js"></script>
 
 <style>
 body{
@@ -173,6 +173,13 @@ function login(){
 
 const password=document.getElementById("adminPassword").value
 
+if(!password){
+  document.getElementById("loginStatus").innerHTML="❌ Enter password"
+  return
+}
+
+console.log("Logging in with BACKEND:", BACKEND)
+
 fetch(`${BACKEND}/admin/login`,{
 method:"POST",
 headers:{
@@ -182,8 +189,13 @@ body:JSON.stringify({
 password:password
 })
 })
-.then(r=>r.json())
+.then(r=>{
+  console.log("Login response status:", r.status)
+  return r.json()
+})
 .then(data=>{
+
+console.log("Login response:", data)
 
 if(data.access_token){
 
@@ -193,15 +205,25 @@ document.getElementById("loginCard").style.display="none"
 
 document.getElementById("adminPanel").classList.remove("hidden")
 
-initMap()
-loadTrips()
+setTimeout(function(){
+  try {
+    initMap()
+    loadTrips()
+  } catch(e) {
+    console.error("Error loading map/trips:", e)
+  }
+}, 100)
 
 }else{
 
-document.getElementById("loginStatus").innerHTML="Login Failed"
+document.getElementById("loginStatus").innerHTML="❌ Login Failed: " + (data.detail || data.error || "Invalid password")
 
 }
 
+})
+.catch(err => {
+  console.error("Login error:", err)
+  document.getElementById("loginStatus").innerHTML="❌ Connection Error: " + err.message
 })
 
 }

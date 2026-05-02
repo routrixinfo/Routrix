@@ -426,8 +426,19 @@ def health_check():
 def admin_login(data: dict):
 
     password = data.get("password")
+    
+    logger.info(f"[ADMIN LOGIN] Attempt - Password provided: {bool(password)}, ADMIN_PASSWORD set: {bool(ADMIN_PASSWORD)}, SECRET_KEY set: {bool(SECRET_KEY)}")
+
+    if not ADMIN_PASSWORD:
+        logger.error("[ADMIN LOGIN] ADMIN_PASSWORD not configured in environment")
+        raise HTTPException(status_code=500, detail="Server error: ADMIN_PASSWORD not configured")
+    
+    if not SECRET_KEY:
+        logger.error("[ADMIN LOGIN] SECRET_KEY not configured in environment")
+        raise HTTPException(status_code=500, detail="Server error: SECRET_KEY not configured")
 
     if password != ADMIN_PASSWORD:
+        logger.warning(f"[ADMIN LOGIN] Invalid password attempt")
         raise HTTPException(status_code=401, detail="Invalid password")
 
     token = jwt.encode(
@@ -435,6 +446,8 @@ def admin_login(data: dict):
         SECRET_KEY,
         algorithm=ALGORITHM
     )
+    
+    logger.info(f"[ADMIN LOGIN] Success - Token issued")
 
     return {"access_token": token}
 
