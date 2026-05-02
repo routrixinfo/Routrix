@@ -5,9 +5,21 @@
   "trailingSlash": false,
   "headers": [
     {
-      "source": "/(.*)",
+      "source": "/api/.*",
       "headers": [
-        { "key": "Cache-Control", "value": "public, max-age=0, must-revalidate" }
+        { "key": "Cache-Control", "value": "no-store, no-cache, must-revalidate" }
+      ]
+    },
+    {
+      "source": "/admin",
+      "headers": [
+        { "key": "Cache-Control", "value": "no-store, no-cache, must-revalidate" }
+      ]
+    },
+    {
+      "source": "/(.*)\\.html$",
+      "headers": [
+        { "key": "Cache-Control", "value": "no-store, no-cache, must-revalidate" }
       ]
     },
     {
@@ -33,10 +45,5 @@
     { "source": "/tracking", "destination": "/tracking.html" },
     { "source": "/driver", "destination": "/driver.html" },
     { "source": "/legal", "destination": "/Legal.html" }
-  ],
-  "routes": [
-    { "src": "^/assets/(.*)", "dest": "/assets/$1" },
-    { "src": "^/static/(.*)", "dest": "/static/$1" },
-    { "src": "^/midia/(.*)", "dest": "/midia/$1" }
   ]
 }
