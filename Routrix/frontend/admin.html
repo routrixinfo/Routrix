@@ -164,7 +164,8 @@ display:none;
 
 <script>
 
-const BACKEND = API_BASE_URL;
+const BACKEND = window.API_BASE_URL || "https://routrix.onrender.com";
+console.log("BACKEND URL:", BACKEND);
 
 let map
 let markers=[]
@@ -345,6 +346,7 @@ headers:{
 .then(r=>r.json())
 .then(data=>{
 
+const otpBox = document.getElementById("otpBox");
 otpBox.innerHTML = `
 <div style="font-size:16px; margin-top:10px;">
   <strong>Generated OTP:</strong> <span style="color:#00ffcc;">${data.otp}</span>
@@ -468,21 +470,47 @@ function logout(){
   localStorage.removeItem("admin_token")
   window.location.href = "/"
 }
+
 window.onload = function(){
 
   const token = localStorage.getItem("admin_token")
 
-  if(token){
-    document.getElementById("loginCard").style.display="none"
-    document.getElementById("adminPanel").classList.remove("hidden")
-    initMap()
-
-    // 🔥 ADD THIS LINE
-    loadTrips();
-
-  }else{
-    document.getElementById("loginCard").style.display="block"
+  if(!token){
+    document.getElementById("loginCard").style.display = "block"
+    return
   }
+
+  // ✅ VERIFY TOKEN WITH BACKEND
+  fetch(BACKEND + "/admin/active-trips", {
+    headers:{
+      "Authorization":"Bearer " + token
+    }
+  })
+  .then(res => {
+
+    if(res.status !== 200){
+      // ❌ INVALID TOKEN → LOGOUT
+      localStorage.removeItem("admin_token")
+      document.getElementById("loginCard").style.display = "block"
+      return
+    }
+
+    // ✅ VALID TOKEN → SHOW ADMIN
+    document.getElementById("loginCard").style.display = "none"
+    document.getElementById("adminPanel").classList.remove("hidden")
+
+    initMap()
+    loadTrips()
+
+  })
+  .catch(err => {
+    console.error("Auth check failed:", err)
+
+    localStorage.removeItem("admin_token")
+    document.getElementById("loginCard").style.display = "block"
+  })
+
+}
 
 }
 // DELETE BANNER
