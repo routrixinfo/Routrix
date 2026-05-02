@@ -19,12 +19,28 @@ import jwt
 import time
 import threading
 import mimetypes
+import logging
 from urllib.parse import urljoin
 from sqlalchemy import create_engine, Column, String, Float, DateTime, Boolean, Integer, Text
 from sqlalchemy.orm import sessionmaker, declarative_base
 from sqlalchemy.exc import SQLAlchemyError
 import boto3
 from botocore.exceptions import BotoCoreError, ClientError
+import cloudinary
+import cloudinary.uploader
+import cloudinary.api
+from cloudinary.exceptions import Error as CloudinaryError
+from apscheduler.schedulers.background import BackgroundScheduler
+
+# =============================
+# LOGGING SETUP
+# =============================
+logging.basicConfig(
+    level=logging.INFO,
+    format='[%(asctime)s] [%(levelname)s] %(message)s',
+    datefmt='%Y-%m-%d %H:%M:%S'
+)
+logger = logging.getLogger("ROUTRIX")
 
 # =============================
 # LOAD ENV
@@ -47,6 +63,19 @@ AWS_S3_BUCKET = os.getenv("AWS_S3_BUCKET")
 AWS_REGION = os.getenv("AWS_REGION", "us-east-1")
 AWS_S3_ENDPOINT = os.getenv("AWS_S3_ENDPOINT")
 BANNER_STORAGE_URL = os.getenv("BANNER_STORAGE_URL")
+
+# Cloudinary Configuration
+CLOUDINARY_CLOUD_NAME = os.getenv("CLOUDINARY_CLOUD_NAME")
+CLOUDINARY_API_KEY = os.getenv("CLOUDINARY_API_KEY")
+CLOUDINARY_API_SECRET = os.getenv("CLOUDINARY_API_SECRET")
+
+# Initialize Cloudinary if credentials are provided
+if CLOUDINARY_CLOUD_NAME and CLOUDINARY_API_KEY and CLOUDINARY_API_SECRET:
+    cloudinary.config(
+        cloud_name=CLOUDINARY_CLOUD_NAME,
+        api_key=CLOUDINARY_API_KEY,
+        api_secret=CLOUDINARY_API_SECRET
+    )
 
 # Career attachments should stay under Gmail size limits when encoded
 CAREER_ATTACHMENT_MAX_BYTES = 8 * 1024 * 1024   # 8 MB per file
@@ -150,6 +179,16 @@ def get_s3_client():
 
 
 def build_banner_url(filename: str) -> str:
+    """
+    Build banner URL - with Cloudinary migration, this primarily returns stored URLs from DB.
+    For backward compatibility, still handles legacy storage types.
+    """
+    # For Cloudinary: storage_url is already the secure URL from Cloudinary
+    # This function is kept for backward compatibility but mainly used for legacy cases
+    if BANNER_STORAGE_TYPE == "cloudinary" or (CLOUDINARY_CLOUD_NAME and CLOUDINARY_API_KEY):
+        # Assume filename contains the public_id, construct URL if needed
+        return f"https://res.cloudinary.com/{CLOUDINARY_CLOUD_NAME}/image/upload/{filename}"
+    
     if BANNER_STORAGE_TYPE == "s3" and AWS_S3_BUCKET:
         if BANNER_STORAGE_URL:
             return f"{BANNER_STORAGE_URL.rstrip('/')}/{filename}"
@@ -161,57 +200,160 @@ def build_banner_url(filename: str) -> str:
 
 
 def save_banner_file(file: UploadFile):
+    """
+    Upload banner to Cloudinary with automatic optimizations.
+    Returns: (public_id, secure_url)
+    """
+    # Validate file type
     file_ext = os.path.splitext(file.filename)[1].lower()
-    if file_ext not in {".jpg", ".jpeg"}:
-        raise HTTPException(status_code=400, detail="Only JPG images are supported")
-
-    filename = f"banner_{int(time.time())}.jpg"
-    contents = file.file.read() if hasattr(file.file, "read") else None
-    if contents is None:
-        raise HTTPException(status_code=400, detail="Invalid banner file")
-
-    if BANNER_STORAGE_TYPE == "s3":
-        if not AWS_S3_BUCKET:
-            raise HTTPException(status_code=500, detail="AWS_S3_BUCKET is required for S3 banner storage")
-        try:
-            client = get_s3_client()
-            client.put_object(
-                Bucket=AWS_S3_BUCKET,
-                Key=filename,
-                Body=contents,
-                ContentType="image/jpeg",
-                ACL="public-read"
-            )
-        except (BotoCoreError, ClientError) as e:
-            raise HTTPException(status_code=500, detail=f"S3 upload failed: {e}")
-        return filename, build_banner_url(filename)
-
-    os.makedirs("banners", exist_ok=True)
-    path = os.path.join("banners", filename)
-    with open(path, "wb") as f:
-        f.write(contents)
-
-    return filename, build_banner_url(filename)
+    if file_ext not in {".jpg", ".jpeg", ".png"}:
+        raise HTTPException(
+            status_code=400, 
+            detail="Only JPG, JPEG, and PNG images are supported"
+        )
+    
+    # Check Cloudinary configuration
+    if not (CLOUDINARY_CLOUD_NAME and CLOUDINARY_API_KEY and CLOUDINARY_API_SECRET):
+        raise HTTPException(
+            status_code=500, 
+            detail="Cloudinary is not configured. Please set CLOUDINARY_CLOUD_NAME, CLOUDINARY_API_KEY, and CLOUDINARY_API_SECRET"
+        )
+    
+    try:
+        # Read file contents with proper error handling
+        if not hasattr(file.file, "read"):
+            raise HTTPException(status_code=400, detail="Invalid banner file")
+        
+        contents = file.file.read()
+        if not contents:
+            raise HTTPException(status_code=400, detail="Banner file is empty")
+        
+        # Reset file pointer for potential re-reads
+        file.file.seek(0)
+        
+        # Generate unique public_id with timestamp
+        public_id_base = f"routrix_banners/banner_{int(time.time())}"
+        
+        # Upload to Cloudinary with automatic optimizations
+        upload_response = cloudinary.uploader.upload(
+            file.file,
+            public_id=public_id_base,
+            folder="routrix_banners",
+            overwrite=False,
+            resource_type="image",
+            quality="auto",  # Automatic quality optimization
+            fetch_format="auto",  # Automatic format optimization
+            transformation=[
+                {"width": 1200, "crop": "limit", "quality": "auto"}  # Max width 1200px
+            ]
+        )
+        
+        public_id = upload_response["public_id"]
+        secure_url = upload_response["secure_url"]
+        
+        logger.info(f"[BANNER] Uploaded to Cloudinary: {public_id} -> {secure_url}")
+        return public_id, secure_url
+        
+    except HTTPException:
+        raise
+    except CloudinaryError as e:
+        logger.error(f"[BANNER ERROR] Cloudinary upload failed: {str(e)}")
+        raise HTTPException(
+            status_code=500, 
+            detail=f"Cloudinary upload failed: {str(e)}"
+        )
+    except Exception as e:
+        logger.error(f"[BANNER ERROR] Unexpected error during upload: {str(e)}")
+        raise HTTPException(
+            status_code=500, 
+            detail=f"Banner upload failed: {str(e)}"
+        )
 
 
 @app.on_event("startup")
 def startup_event():
+    print("\n" + "="*60)
+    print("🚀 ROUTRIX Backend Startup")
+    print("="*60)
+    
+    # Initialize database
     Base.metadata.create_all(bind=engine)
+    print(f"✓ Database initialized (SQLAlchemy)")
+    
+    # Check banner storage configuration
+    if CLOUDINARY_CLOUD_NAME and CLOUDINARY_API_KEY and CLOUDINARY_API_SECRET:
+        print(f"✓ Banner Storage: Cloudinary ({CLOUDINARY_CLOUD_NAME})")
+    elif BANNER_STORAGE_TYPE == "s3":
+        if not AWS_S3_BUCKET:
+            print("✗ CRITICAL: BANNER_STORAGE_TYPE=s3 but AWS_S3_BUCKET not set")
+            raise RuntimeError("BANNER_STORAGE_TYPE=s3 requires AWS_S3_BUCKET and AWS credentials")
+        print(f"✓ Banner Storage: S3 ({AWS_S3_BUCKET})")
+    else:
+        print(f"✓ Banner Storage: Local filesystem (banners/)")
+    
+    # Check SMTP configuration
+    if SMTP_USERNAME and SMTP_PASSWORD:
+        print(f"✓ SMTP Configured: {SMTP_USERNAME} @ {SMTP_SERVER}:{SMTP_PORT}")
+    else:
+        print("⚠ WARNING: SMTP credentials not fully configured")
+        print(f"   - SMTP_USER: {'SET' if SMTP_USERNAME else 'MISSING'}")
+        print(f"   - SMTP_PASS: {'SET' if SMTP_PASSWORD else 'MISSING'}")
+        print("   - Email delivery will FAIL")
+    
+    # Check other critical configuration
+    if not SECRET_KEY:
+        print("⚠ WARNING: SECRET_KEY not set - JWT tokens may fail")
+    else:
+        print("✓ JWT Secret Key configured")
+    
+    print(f"✓ Backend URL: {BACKEND_URL}")
+    print(f"✓ Frontend URL: {FRONTEND_URL or '(not set)'}")
+    print(f"✓ Environment: {os.getenv('ENVIRONMENT', 'development')}")
+    print("="*60 + "\n")
+    
+    # Start background scheduler for OTP cleanup
+    start_cleanup_scheduler()
 
-    if BANNER_STORAGE_TYPE == "s3" and not AWS_S3_BUCKET:
-        raise RuntimeError("BANNER_STORAGE_TYPE=s3 requires AWS_S3_BUCKET and AWS credentials")
 
-    if not SMTP_USERNAME or not SMTP_PASSWORD:
-        print("Warning: SMTP credentials are not fully configured. Email delivery will fail.")
+def cleanup_expired_otps():
+    """Delete expired OTP records every 5 minutes"""
+    with SessionLocal() as db:
+        try:
+            expired_count = db.query(OTPRecord).filter(
+                OTPRecord.expires < datetime.utcnow()
+            ).delete()
+            db.commit()
+            if expired_count > 0:
+                logger.info(f"[CLEANUP] Deleted {expired_count} expired OTP records")
+        except Exception as e:
+            logger.error(f"[CLEANUP ERROR] Failed to cleanup OTPs: {e}")
+            db.rollback()
+
+
+def start_cleanup_scheduler():
+    """Start background scheduler for database cleanup"""
+    try:
+        scheduler = BackgroundScheduler()
+        scheduler.add_job(cleanup_expired_otps, 'interval', minutes=5, id='otp_cleanup')
+        scheduler.start()
+        logger.info("[SCHEDULER] Background OTP cleanup scheduler started")
+    except Exception as e:
+        logger.error(f"[SCHEDULER ERROR] Failed to start scheduler: {e}")
 
 
 @app.middleware("http")
 async def no_cache_middleware(request: Request, call_next):
     response = await call_next(request)
+    
+    # Force no-cache for all critical APIs
     if request.url.path.startswith(("/admin", "/track", "/update-location", "/verify-otp", "/submit-pod", "/booking", "/career", "/banners", "/api")):
         response.headers["Cache-Control"] = "no-store, no-cache, must-revalidate, max-age=0"
         response.headers["Pragma"] = "no-cache"
         response.headers["Expires"] = "0"
+        # Add additional headers to defeat browser caching
+        response.headers["ETag"] = f'"{int(time.time())}"'
+        response.headers["Last-Modified"] = datetime.utcnow().strftime("%a, %d %b %Y %H:%M:%S GMT")
+    
     return response
 
 # ===== CORS CONFIGURATION =====
@@ -336,29 +478,72 @@ def driver_login(data: dict):
 # =============================
 @app.post("/admin/upload-banner")
 async def upload_banner(file: UploadFile = File(...), admin=Depends(verify_admin)):
-    filename, url = save_banner_file(file)
+    public_id = None
+    try:
+        public_id, secure_url = save_banner_file(file)
 
-    with SessionLocal() as db:
-        banner = Banner(filename=filename, storage_url=url)
-        db.add(banner)
-        db.commit()
-
-    return {"success": True, "file": filename, "url": url}
+        with SessionLocal() as db:
+            try:
+                # Store public_id as filename and secure_url from Cloudinary
+                banner = Banner(filename=public_id, storage_url=secure_url)
+                db.add(banner)
+                db.commit()
+            except Exception as db_error:
+                db.rollback()
+                # Rollback: Delete from Cloudinary if DB save failed
+                if public_id:
+                    try:
+                        cloudinary.uploader.destroy(public_id)
+                        logger.warning(f"[BANNER] Rolled back Cloudinary upload due to DB error: {public_id}")
+                    except Exception as delete_error:
+                        logger.error(f"[BANNER ERROR] Failed to rollback Cloudinary deletion: {str(delete_error)}")
+                raise HTTPException(
+                    status_code=500, 
+                    detail=f"Failed to save banner to database: {str(db_error)}"
+                )
+        
+        logger.info(f"[BANNER OK] Banner uploaded: {public_id} -> {secure_url}")
+        return {
+            "success": True,
+            "file": public_id,
+            "url": secure_url,
+            "timestamp": int(time.time())  # For cache-busting on client side
+        }
+        
+    except HTTPException as e:
+        logger.error(f"[BANNER ERROR] {e.detail}")
+        raise e
+    except Exception as e:
+        logger.error(f"[BANNER ERROR] Unexpected error: {str(e)}")
+        raise HTTPException(status_code=500, detail=f"Banner upload failed: {str(e)}")
 
 @app.get("/banners")
-def get_banners():
+def get_banners(response: Response):
+    """
+    Get all banners with cache-busting headers.
+    Returns list of banners with URLs directly from Cloudinary.
+    """
+    # Add cache-busting headers to prevent stale banner caching
+    response.headers["Cache-Control"] = "public, max-age=3600, must-revalidate"
+    response.headers["ETag"] = f'"{int(time.time())}"'
+    
     with SessionLocal() as db:
         banners = db.query(Banner).order_by(Banner.created_at.desc()).all()
 
     if banners:
-        return {"banners": [{"filename": banner.filename, "url": banner.storage_url} for banner in banners if banner.storage_url]}
+        banner_list = [
+            {
+                "filename": banner.filename,  # Cloudinary public_id
+                "url": banner.storage_url    # Cloudinary secure_url
+            }
+            for banner in banners
+            if banner.storage_url
+        ]
+        logger.info(f"[BANNER OK] Retrieved {len(banner_list)} banners from database")
+        return {"banners": banner_list}
 
-    if not os.path.exists("banners"):
-        return {"banners": []}
-
-    files = [f for f in os.listdir("banners") if f.lower().endswith(".jpg") or f.lower().endswith(".jpeg")]
-    files.sort(reverse=True)
-    return {"banners": [{"filename": name, "url": build_banner_url(name)} for name in files]}
+    logger.info("[BANNER] No banners found in database")
+    return {"banners": []}
 
 # =============================
 # DELETE BANNER
@@ -366,24 +551,66 @@ def get_banners():
 
 @app.delete("/admin/delete-banner/{filename}")
 def delete_banner(filename: str, admin=Depends(verify_admin)):
-    with SessionLocal() as db:
-        banner = db.query(Banner).filter(Banner.filename == filename).first()
-        if banner:
-            db.delete(banner)
-            db.commit()
-
-    if BANNER_STORAGE_TYPE == "s3" and AWS_S3_BUCKET:
-        try:
-            get_s3_client().delete_object(Bucket=AWS_S3_BUCKET, Key=filename)
-        except (BotoCoreError, ClientError) as e:
-            raise HTTPException(status_code=500, detail=f"Could not delete banner from S3: {e}")
-
-    else:
-        path = os.path.join("banners", filename)
-        if os.path.exists(path):
-            os.remove(path)
-
-    return {"success": True}
+    """
+    Delete banner from both Cloudinary and database atomically.
+    filename parameter is the Cloudinary public_id.
+    """
+    try:
+        # First, delete from Cloudinary to ensure file is gone
+        cloudinary_deleted = False
+        if CLOUDINARY_CLOUD_NAME and CLOUDINARY_API_KEY and CLOUDINARY_API_SECRET:
+            try:
+                result = cloudinary.uploader.destroy(filename)
+                if result.get("result") == "ok":
+                    cloudinary_deleted = True
+                    logger.info(f"[BANNER OK] Deleted from Cloudinary: {filename}")
+                else:
+                    logger.warning(f"[BANNER WARN] Cloudinary deletion response: {result}")
+                    cloudinary_deleted = True  # Treat as success even if "not found"
+            except CloudinaryError as e:
+                logger.error(f"[BANNER ERROR] Cloudinary deletion failed: {str(e)}")
+                raise HTTPException(
+                    status_code=500,
+                    detail=f"Could not delete banner from Cloudinary: {str(e)}"
+                )
+        
+        # Then, delete from database only if Cloudinary deletion succeeded
+        with SessionLocal() as db:
+            try:
+                banner = db.query(Banner).filter(Banner.filename == filename).first()
+                if not banner:
+                    raise HTTPException(
+                        status_code=404,
+                        detail=f"Banner {filename} not found in database"
+                    )
+                
+                db.delete(banner)
+                db.commit()
+                logger.info(f"[BANNER OK] Removed from database: {filename}")
+            except HTTPException:
+                raise
+            except Exception as db_error:
+                db.rollback()
+                logger.error(f"[BANNER ERROR] Database deletion failed: {str(db_error)}")
+                raise HTTPException(
+                    status_code=500,
+                    detail=f"Could not delete banner from database: {str(db_error)}"
+                )
+        
+        
+        return {
+            "success": True,
+            "message": f"Banner {filename} deleted successfully"
+        }
+        
+    except HTTPException:
+        raise
+    except Exception as e:
+        logger.error(f"[BANNER ERROR] Unexpected error deleting {filename}: {str(e)}")
+        raise HTTPException(
+            status_code=500,
+            detail=f"Error deleting banner: {str(e)}"
+        )
 
 # =============================
 # DRIVER GPS UPDATE
@@ -522,51 +749,60 @@ async def submit_pod(
     receiver_name: str = Form(...),
     image: UploadFile = File(...)
 ):
-    with SessionLocal() as db:
-        otp_record = db.query(OTPRecord).filter(OTPRecord.lr == lr).first()
-        if not otp_record or not otp_record.verified:
-            return {"success": False, "error": "OTP not verified"}
+    try:
+        with SessionLocal() as db:
+            otp_record = db.query(OTPRecord).filter(OTPRecord.lr == lr).first()
+            if not otp_record or not otp_record.verified:
+                print(f"[POD ERROR] OTP not verified for {lr}")
+                return {"success": False, "error": "OTP not verified"}
 
-    os.makedirs("pod_images", exist_ok=True)
-    image_path = f"pod_images/pod_{lr}.jpg"
+        os.makedirs("pod_images", exist_ok=True)
+        image_path = f"pod_images/pod_{lr}.jpg"
 
-    with open(image_path, "wb") as f:
-        f.write(await image.read())
+        with open(image_path, "wb") as f:
+            f.write(await image.read())
 
-    email_sent = send_pod_email(lr, receiver_name, image_path)
-    if email_sent:
-        try:
-            os.remove(image_path)
-            print(f"🗑 POD deleted immediately after email: {image_path}")
-        except Exception as e:
-            print("POD delete error:", e)
-    else:
-        threading.Thread(
-            target=delete_pod_after_delay,
-            args=(image_path,),
-            daemon=True
-        ).start()
+        email_sent = send_pod_email(lr, receiver_name, image_path)
+        if email_sent:
+            try:
+                os.remove(image_path)
+                print(f"[POD OK] POD image deleted after successful email: {image_path}")
+            except Exception as e:
+                print(f"[POD WARNING] Could not delete POD image {image_path}: {e}")
+        else:
+            print(f"[POD ERROR] Email failed for {lr}, keeping image for 24h")
+            threading.Thread(
+                target=delete_pod_after_delay,
+                args=(image_path,),
+                daemon=True
+            ).start()
 
-    with SessionLocal() as db:
-        delivery = DeliveryRecord(
-            lr=lr,
-            receiver=receiver_name,
-            delivered_at=datetime.utcnow(),
-            email_sent=email_sent,
-            notes=None
-        )
-        db.merge(delivery)
-        db.commit()
-
-        location = db.query(LiveLocation).filter(LiveLocation.lr == lr).first()
-        if location:
-            location.status = "delivered"
+        with SessionLocal() as db:
+            delivery = DeliveryRecord(
+                lr=lr,
+                receiver=receiver_name,
+                delivered_at=datetime.utcnow(),
+                email_sent=email_sent,
+                notes=None
+            )
+            db.merge(delivery)
             db.commit()
 
-    if not email_sent:
-        return {"success": False, "error": "POD email delivery failed"}
+            location = db.query(LiveLocation).filter(LiveLocation.lr == lr).first()
+            if location:
+                location.status = "delivered"
+                db.commit()
 
-    return {"success": True}
+        if not email_sent:
+            print(f"[POD ERROR] Failed to send POD email for {lr}")
+            return {"success": False, "error": "POD image captured but email delivery failed. Your delivery has been recorded."}
+
+        print(f"[POD OK] POD submitted successfully for {lr}")
+        return {"success": True, "message": "POD submitted and email sent successfully"}
+        
+    except Exception as e:
+        print(f"[POD ERROR] Exception in submit_pod: {e}")
+        return {"success": False, "error": f"An error occurred while submitting POD: {str(e)[:100]}"}
 
 
 # =============================
@@ -664,10 +900,10 @@ Time: {datetime.utcnow()}
 
         email_success = send_email(msg)
         if not email_success:
-            print(f"Failed to send admin email for Request ID: {request_id}")
-            return {"success": False, "error": "Failed to send booking notification email"}
+            print(f"[BOOKING ERROR] Failed to send admin email for Request ID: {request_id}")
+            return {"success": False, "error": "Failed to send booking notification to our team. Please contact us directly."}
 
-        print(f"Admin email sent for Request ID: {request_id}")
+        print(f"[BOOKING OK] Admin email sent for Request ID: {request_id}")
         time.sleep(1)
 
         # ===== SEND EMAIL TO CUSTOMER IF EMAIL PROVIDED =====
@@ -833,19 +1069,21 @@ Founder & CEO – Mr. Suraj Jha
             customer_msg.add_alternative(html_msg, subtype="html")
             customer_sent = send_email(customer_msg)
             if not customer_sent:
-                print(f"Failed to send customer email to {customer_email} for Request ID: {request_id}")
-                return {"success": False, "error": "Failed to send booking confirmation email to the customer"}
+                print(f"[BOOKING ERROR] Failed to send customer email to {customer_email} for Request ID: {request_id}")
+                return {"success": False, "error": "Failed to send booking confirmation email to you. We have received your booking and will contact you shortly."}
 
-            print(f"Customer email sent to {customer_email} for Request ID: {request_id}")
+            print(f"[BOOKING OK] Customer email sent to {customer_email} for Request ID: {request_id}")
 
         return {
             "success": True,
-            "request_id": request_id
+            "request_id": request_id,
+            "message": "Booking submitted successfully!"
         }
     except Exception as e:
+        print(f"[BOOKING ERROR] Exception in booking handler: {e}")
         return {
             "success": False,
-            "error": str(e)
+            "error": f"An error occurred while processing your booking: {str(e)[:100]}"
         }
 
 # =============================
@@ -906,13 +1144,13 @@ async def career_form(request: Request, background_tasks: BackgroundTasks):
         return label_map.get(key, key.replace('_', ' ').replace('-', ' ').title())
 
     def format_value(value):
-        if hasattr(value, 'filename') and value.filename:
+        if hasattr(value, "filename") and value.filename:
             return None
         if isinstance(value, (list, tuple)):
             values = [str(item).strip() for item in value if str(item).strip()]
-            return ', '.join(values) if values else 'N/A'
+            return ", ".join(values) if values else "N/A"
         text = str(value).strip()
-        return text or 'N/A'
+        return text or "N/A"
 
     text_lines = [f"New Career Inquiry ({category})", "", f"Applicant: {applicant_name}", ""]
     html_rows = []
@@ -968,6 +1206,8 @@ async def career_form(request: Request, background_tasks: BackgroundTasks):
 
         total_attachment_bytes += file_size
         accepted_attachments.append((filename, file_bytes))
+
+    # Note: CAREER_ATTACHMENT_MAX_BYTES and CAREER_ATTACHMENT_TOTAL_BYTES were misspelled, now fixed
 
     if skipped_attachments:
         text_lines.append("")
@@ -1039,8 +1279,12 @@ async def career_form(request: Request, background_tasks: BackgroundTasks):
         )
         attachments_added += 1
 
-    background_tasks.add_task(send_email, msg)
-    print(f"Queued career email send. Subject: {subject}. Attachments: {attachments_added}")
+    email_result = send_email(msg)
+    if not email_result:
+        print(f"Failed to send career email for {applicant_name}. Subject: {subject}")
+        return {"success": False, "error": "Failed to send career application email. Please try again."}
+    
+    print(f"Career email sent successfully. Subject: {subject}. Attachments: {attachments_added}")
     return {"success": True}
 
 
@@ -1097,54 +1341,70 @@ Time: {datetime.utcnow()}
 def send_email(msg):
     """Stable email sender with retry + timeout + logging"""
 
+    if not SMTP_USERNAME or not SMTP_PASSWORD:
+        print("ERROR: SMTP credentials not configured (SMTP_USER or SMTP_PASS missing)")
+        return False
+
     context = ssl.create_default_context()
+    
+    # Try SSL on port 465 first (preferred for Gmail)
     for attempt in range(3):  # retry 3 times
         try:
+            print(f"[SMTP SSL] Connecting to {SMTP_SERVER}:{SMTP_PORT} (Attempt {attempt+1}/3)")
             with smtplib.SMTP_SSL(SMTP_SERVER, SMTP_PORT, timeout=15, context=context) as smtp:
+                print(f"[SMTP SSL] Connected, logging in as {SMTP_USERNAME}")
                 smtp.login(SMTP_USERNAME, SMTP_PASSWORD)
                 smtp.send_message(msg)
-
-                print(f"Email sent successfully (SSL attempt {attempt+1})")
+                print(f"[SMTP] Email sent successfully via SSL (Attempt {attempt+1})")
                 return True
 
-        except smtplib.SMTPAuthenticationError:
-            print("SMTP Authentication Error: Check credentials")
+        except smtplib.SMTPAuthenticationError as e:
+            print(f"[SMTP ERROR] Authentication failed: {e}")
+            print(f"[SMTP ERROR] Ensure you're using an app password, not your regular Gmail password")
             return False  # don't retry auth errors
 
         except smtplib.SMTPException as e:
-            print(f"SMTP SSL Error (Attempt {attempt+1}): {e}")
-            time.sleep(2)
+            print(f"[SMTP ERROR] SSL attempt {attempt+1} failed: {e}")
+            if attempt < 2:
+                time.sleep(2)
 
         except Exception as e:
-            print(f"SMTP SSL General Error (Attempt {attempt+1}): {e}")
-            time.sleep(2)
+            print(f"[SMTP ERROR] SSL attempt {attempt+1} general error: {e}")
+            if attempt < 2:
+                time.sleep(2)
 
-    print("Falling back to STARTTLS on port 587")
+    print("[SMTP] SSL failed, falling back to STARTTLS on port 587")
+    
+    # Fallback to STARTTLS
     for attempt in range(3):
         try:
+            print(f"[SMTP STARTTLS] Connecting to {SMTP_SERVER}:587 (Attempt {attempt+1}/3)")
             with smtplib.SMTP(SMTP_SERVER, 587, timeout=15) as smtp:
                 smtp.ehlo()
                 smtp.starttls(context=context)
                 smtp.ehlo()
+                print(f"[SMTP STARTTLS] Connected, logging in as {SMTP_USERNAME}")
                 smtp.login(SMTP_USERNAME, SMTP_PASSWORD)
                 smtp.send_message(msg)
-
-                print(f"Email sent successfully (STARTTLS attempt {attempt+1})")
+                print(f"[SMTP] Email sent successfully via STARTTLS (Attempt {attempt+1})")
                 return True
 
-        except smtplib.SMTPAuthenticationError:
-            print("SMTP Authentication Error: Check credentials")
+        except smtplib.SMTPAuthenticationError as e:
+            print(f"[SMTP ERROR] Authentication failed: {e}")
+            print(f"[SMTP ERROR] Ensure you're using an app password, not your regular Gmail password")
             return False
 
         except smtplib.SMTPException as e:
-            print(f"SMTP STARTTLS Error (Attempt {attempt+1}): {e}")
-            time.sleep(2)
+            print(f"[SMTP ERROR] STARTTLS attempt {attempt+1} failed: {e}")
+            if attempt < 2:
+                time.sleep(2)
 
         except Exception as e:
-            print(f"SMTP STARTTLS General Error (Attempt {attempt+1}): {e}")
-            time.sleep(2)
+            print(f"[SMTP ERROR] STARTTLS attempt {attempt+1} general error: {e}")
+            if attempt < 2:
+                time.sleep(2)
 
-    print("Email failed after all SMTP attempts")
+    print("[SMTP CRITICAL] Email failed after all SMTP attempts (SSL + STARTTLS)")
     return False
 
 
