@@ -1453,3 +1453,18 @@ def reset_trip(lr: str, admin=Depends(verify_admin)):
 # =============================
 # HEALTH CHECK
 # =============================
+# =============================
+# SIMPLE ORDERS SYSTEM (NEW)
+# =============================
+
+orders_db = []
+
+@app.get("/api/orders")
+def get_orders():
+    return orders_db
+
+
+@app.post("/api/orders")
+def create_order(order: dict):
+    orders_db.append(order)
+    return order
