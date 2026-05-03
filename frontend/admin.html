@@ -463,13 +463,13 @@ return
 }
 
 data.banners.forEach(file => {
-  const filename = file.filename || file.url.split('/').pop()
+  const publicId = file.filename
   const imageUrl = file.url + "?t=" + Date.now()
   const div = document.createElement("div")
 
   div.innerHTML = `
     <img src="${imageUrl}" width="100%" style="margin:10px 0; border-radius:6px;">
-    <button onclick="deleteBanner('${filename}')">Delete</button>
+    <button onclick="deleteBanner('${publicId}')">Delete</button>
   `
 
   box.appendChild(div)
@@ -545,6 +545,7 @@ window.onload = function(){
 
     initMap()
     loadTrips()
+    loadBanners()
 
   })
   .catch(err => {
@@ -556,26 +557,33 @@ window.onload = function(){
 
 }
 
-function deleteBanner(filename){
+function deleteBanner(publicId){
 
-if(!confirm("Delete this banner?")) return
+  if(!confirm("Delete this banner?")) return
 
-fetch(`${BACKEND}/admin/delete-banner/${filename}`,{
-method:"DELETE",
-headers:{
-"Authorization":"Bearer "+localStorage.getItem("admin_token")
-}
-})
-.then(r => r.json())
-.then(() => {
-alert("Banner Deleted")
-loadBanners()
-})
+  fetch(`${BACKEND}/admin/delete-banner/${publicId}`,{
+    method:"DELETE",
+    headers:{
+      "Authorization":"Bearer "+localStorage.getItem("admin_token")
+    }
+  })
+  .then(res => {
+    if(!res.ok){
+      throw new Error("Delete failed")
+    }
+    return res.json()
+  })
+  .then(() => {
+    alert("✅ Banner Deleted")
+    loadBanners()
+  })
+  .catch(err => {
+    console.error("Delete Error:", err)
+    alert("❌ Failed to delete banner")
+  })
 
 }
 
 </script>
-
-</html>
 
 </html>
