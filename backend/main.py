@@ -363,7 +363,9 @@ DEFAULT_ALLOWED_ORIGINS = [
     "https://routrix.vercel.app",
     "http://localhost:3000",
     "http://localhost:5173",
+    "http://localhost:5501",
     "http://127.0.0.1:3000",
+    "http://127.0.0.1:5501",
 ]
 
 allowed_origins = list(DEFAULT_ALLOWED_ORIGINS)
@@ -457,8 +459,10 @@ def verify_admin(credentials: HTTPAuthorizationCredentials = Depends(security)):
     try:
         payload = jwt.decode(credentials.credentials, SECRET_KEY, algorithms=[ALGORITHM])
         return payload
-    except:
-        raise HTTPException(status_code=403, detail="Invalid or expired token")
+    except jwt.ExpiredSignatureError:
+           raise HTTPException(status_code=401, detail="Token expired")
+    except jwt.InvalidTokenError:
+           raise HTTPException(status_code=403, detail="Invalid token")
     
 
 
@@ -562,7 +566,7 @@ def get_banners(response: Response):
 # DELETE BANNER
 # =============================
 
-@app.delete("/admin/delete-banner/{filename}")
+@app.delete("/admin/delete-banner/{filename:path}")
 def delete_banner(filename: str, admin=Depends(verify_admin)):
     """
     Delete banner from both Cloudinary and database atomically.
