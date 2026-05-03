@@ -164,9 +164,7 @@ display:none;
 
 <script>
 
-const BACKEND = window.API_BASE_URL || "https://routrix.onrender.com";
-console.log("BACKEND URL:", BACKEND);
-
+// Use BACKEND from api-config.js (already declared globally)
 let map
 let markers=[]
 
@@ -179,7 +177,10 @@ if(!password){
   return
 }
 
-console.log("Logging in with BACKEND:", BACKEND)
+console.log("[LOGIN] Starting login process...")
+console.log("[LOGIN] Backend URL:", BACKEND)
+
+document.getElementById("loginStatus").innerHTML="⏳ Logging in..."
 
 fetch(`${BACKEND}/admin/login`,{
 method:"POST",
@@ -191,14 +192,16 @@ password:password
 })
 })
 .then(r=>{
-  console.log("Login response status:", r.status)
+  console.log("[LOGIN] Response status:", r.status)
   return r.json()
 })
 .then(data=>{
 
-console.log("Login response:", data)
+console.log("[LOGIN] Response data:", data)
 
 if(data.access_token){
+
+console.log("[LOGIN] ✅ Login successful!")
 
 localStorage.setItem("admin_token",data.access_token)
 
@@ -206,24 +209,38 @@ document.getElementById("loginCard").style.display="none"
 
 document.getElementById("adminPanel").classList.remove("hidden")
 
+document.getElementById("loginStatus").innerHTML="✅ Login successful!"
+
 setTimeout(function(){
   try {
+    console.log("[LOGIN] Initializing map and loading trips...")
     initMap()
     loadTrips()
   } catch(e) {
-    console.error("Error loading map/trips:", e)
+    console.error("[LOGIN] Error loading map/trips:", e)
   }
 }, 100)
 
+}else if(data.detail){
+
+console.error("[LOGIN] ❌ Failed:", data.detail)
+document.getElementById("loginStatus").innerHTML="❌ Login Failed: " + data.detail
+
+}else if(data.error){
+
+console.error("[LOGIN] ❌ Failed:", data.error)
+document.getElementById("loginStatus").innerHTML="❌ Login Failed: " + data.error
+
 }else{
 
-document.getElementById("loginStatus").innerHTML="❌ Login Failed: " + (data.detail || data.error || "Invalid password")
+console.error("[LOGIN] ❌ No token in response")
+document.getElementById("loginStatus").innerHTML="❌ Login Failed: Invalid password or server error"
 
 }
 
 })
 .catch(err => {
-  console.error("Login error:", err)
+  console.error("[LOGIN] Network error:", err)
   document.getElementById("loginStatus").innerHTML="❌ Connection Error: " + err.message
 })
 
@@ -243,7 +260,6 @@ function searchOrder(){
 
 const lr = document.getElementById("lrInput").value
 
-// 🔥 ADD THIS LINE
 const orderInfo = document.getElementById("orderInfo")
 
 fetch(`${BACKEND}/track/${lr}`)
@@ -265,7 +281,7 @@ orderInfo.innerHTML = `
 
 })
 }
-// 🔥 NEW FUNCTION TO LOAD ACTIVE TRIPS
+
 function loadTrips(){
 
   fetch(BACKEND + "/admin/active-trips", {
@@ -276,12 +292,11 @@ function loadTrips(){
   .then(res => res.json())
   .then(data => {
 
-    console.log("ACTIVE TRIPS:", data); // 🔥 DEBUG
+    console.log("ACTIVE TRIPS:", data)
 
     const container = document.getElementById("tripList");
     container.innerHTML = "";
 
-    // ✅ HANDLE EMPTY CASE
     if(!data || Object.keys(data).length === 0){
       container.innerHTML = "🚫 No active trips right now";
       return;
@@ -312,7 +327,6 @@ function loadTrips(){
     document.getElementById("tripList").innerHTML = "❌ Error loading trips";
   });
 }
-// 🔥 NEW FUNCTION TO CANCEL A TRIP
 
 function cancelTrip(lr){
 
@@ -327,12 +341,11 @@ function cancelTrip(lr){
   .then(res => res.json())
   .then(() => {
     alert("Trip Cancelled ✅");
-    loadTrips(); // refresh list
+    loadTrips();
   });
 
 }
 
-// 🔥 NEW FUNCTION TO GENERATE OTP
 function generateOTP(){
 
 const lr=document.getElementById("lrInput").value
@@ -389,7 +402,6 @@ for(const lr in data){
 
 const truck=data[lr]
 if(truck.status === "Delivered") continue
-
 
 const marker=L.marker([truck.lat,truck.lng])
 .addTo(map)
@@ -452,7 +464,7 @@ return
 
 data.banners.forEach(file => {
   const filename = file.filename || file.url.split('/').pop()
-  const imageUrl = file.url + "?t=" + Date.now()  // Add cache-busting to Cloudinary URLs
+  const imageUrl = file.url + "?t=" + Date.now()
   const div = document.createElement("div")
 
   div.innerHTML = `
@@ -471,16 +483,47 @@ function logout(){
   window.location.href = "/"
 }
 
+// ✅ VALIDATE JWT EXPIRY
+function isTokenValid(token) {
+  try {
+    const payload = JSON.parse(atob(token.split('.')[1]));
+    const expiryTime = payload.exp * 1000;
+    const now = Date.now();
+    
+    if (now >= expiryTime) {
+      console.warn('[AUTH] Token expired');
+      return false;
+    }
+    
+    console.log('[AUTH] Token is valid');
+    return true;
+  } catch (e) {
+    console.error('[AUTH] Invalid token format:', e);
+    return false;
+  }
+}
+
 window.onload = function(){
 
   const token = localStorage.getItem("admin_token")
 
   if(!token){
+    console.log('[AUTH] No token found, showing login');
     document.getElementById("loginCard").style.display = "block"
+    document.getElementById("adminPanel").classList.add("hidden")
     return
   }
 
-  // ✅ VERIFY TOKEN WITH BACKEND
+  // ✅ VALIDATE JWT EXPIRY LOCALLY
+  if(!isTokenValid(token)){
+    console.log('[AUTH] Token expired, logging out');
+    localStorage.removeItem("admin_token")
+    document.getElementById("loginCard").style.display = "block"
+    document.getElementById("adminPanel").classList.add("hidden")
+    return
+  }
+
+  // ✅ VERIFY WITH BACKEND
   fetch(BACKEND + "/admin/active-trips", {
     headers:{
       "Authorization":"Bearer " + token
@@ -489,13 +532,14 @@ window.onload = function(){
   .then(res => {
 
     if(res.status !== 200){
-      // ❌ INVALID TOKEN → LOGOUT
+      console.log('[AUTH] Backend rejected token, logging out');
       localStorage.removeItem("admin_token")
       document.getElementById("loginCard").style.display = "block"
+      document.getElementById("adminPanel").classList.add("hidden")
       return
     }
 
-    // ✅ VALID TOKEN → SHOW ADMIN
+    console.log('[AUTH] Token verified, showing admin panel');
     document.getElementById("loginCard").style.display = "none"
     document.getElementById("adminPanel").classList.remove("hidden")
 
@@ -505,15 +549,12 @@ window.onload = function(){
   })
   .catch(err => {
     console.error("Auth check failed:", err)
-
     localStorage.removeItem("admin_token")
     document.getElementById("loginCard").style.display = "block"
+    document.getElementById("adminPanel").classList.add("hidden")
   })
 
 }
-
-
-// DELETE BANNER
 
 function deleteBanner(filename){
 
@@ -534,5 +575,7 @@ loadBanners()
 }
 
 </script>
+
+</html>
 
 </html>
