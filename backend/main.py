@@ -232,7 +232,7 @@ def save_banner_file(file: UploadFile):
         file.file.seek(0)
         
         # Generate unique public_id with timestamp
-        public_id_base = f"routrix_banners/banner_{int(time.time())}"
+        public_id_base = f"banner_{int(time.time())}"
         
         # Upload to Cloudinary with automatic optimizations
         upload_response = cloudinary.uploader.upload(
@@ -1468,6 +1468,10 @@ def get_orders():
     return orders_db
 
 
+@app.post("/api/orders")
+def create_order(order: dict):
+    orders_db.append(order)
+    return order
 @app.post("/api/orders")
 def create_order(order: dict):
     orders_db.append(order)
